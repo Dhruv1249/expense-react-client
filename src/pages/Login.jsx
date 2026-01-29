@@ -1,7 +1,9 @@
 import { useState } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 function Login() {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -50,6 +52,7 @@ function Login() {
         );
         console.log(response);
         setMessage("User authenticated");
+        navigate("/");
       } catch (error) {
         console.log(error);
         setErrors({
