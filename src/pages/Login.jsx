@@ -1,7 +1,7 @@
 function Login() {
   return (
     <div className="container">
-      <h3 className="text-center">Welcome to Expense App</h3>
+      <h3 className="text-center">Login form here</h3>
     </div>
   );
 }
