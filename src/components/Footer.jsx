@@ -1,5 +1,8 @@
-function Footer() {
-  return <div className="container">This is a footer</div>;
+function Footer(){
+    return(
+        <div className="container">
+            This is footer
+        </div>
+    );
 }
-
 export default Footer;

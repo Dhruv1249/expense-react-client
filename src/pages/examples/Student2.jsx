@@ -1,11 +1,12 @@
 function Student2(props) {
-  return (
-    <p>
-      Student name: {props.name}
-      <br />
-      Roll Number: {props.rollNumber}
-    </p>
-  );
+    return(
+        <>
+        <p>
+            Student Name: {props.name}
+            <br/>
+            Roll Number: {props.rollNumber}
+        </p>
+        </>
+    );
 }
-
-export default Student2;
+export default Student2
