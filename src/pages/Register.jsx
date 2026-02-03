@@ -1,6 +1,7 @@
 import { useState } from "react";
 import axios from "axios";
 import { useNavigate, Link } from "react-router-dom";
+import { serverEndpoint } from "../config/appConfig";
 function Register({ setUser }) {
   const [formData, setFormData] = useState({
     name: "",
@@ -59,7 +60,7 @@ function Register({ setUser }) {
         };
         const config = { withCredentials: true };
         const response = await axios.post(
-          "http://localhost:5001/auth/register",
+          `${serverEndpoint}/auth/register`,
           body,
           config,
         );

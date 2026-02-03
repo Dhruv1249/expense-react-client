@@ -9,17 +9,21 @@ import Logout from "./pages/Logout";
 import UserLayout from "./components/UserLayout";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import axios from "axios";
+import { serverEndpoint } from "./config/appConfig";
+import { useSelector, useDispatch } from "react-redux";
 function App() {
-  const [userDetails, setUserDetails] = useState(null);
+  const dispatch = useDispatch();
+  //const [loading, setLoading] = useState(true);
+  const [userDetails, setUserDetails] = useSelector(
+    (state) => state.userDetails,
+  );
   const isUserLoggedIn = async () => {
     try {
       const response = await axios.post(
-        "http://localhost:5001/auth/is-user-logged-in",
+        `${serverEndpoint}/auth/is-user-logged-in`,
         {},
         { withCredentials: true },
       );
-
-      setUserDetails(response.data.user);
     } catch (error) {
       console.log(error);
     }
@@ -29,74 +33,70 @@ function App() {
     isUserLoggedIn();
   }, []);
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route
-          path="/"
-          element={
-            userDetails ? (
-              <Navigate to="/dashboard" />
-            ) : (
-              <AppLayout>
-                <Home />
-              </AppLayout>
-            )
-          }
-        />
-        <Route
-          path="/register"
-          element={
-            userDetails ? (
-              <Navigate to="/dashboard" />
-            ) : (
-              <Register setUser={setUserDetails} />
-            )
-          }
-        />
+    <Routes>
+      <Route
+        path="/"
+        element={
+          userDetails ? (
+            <Navigate to="/dashboard" />
+          ) : (
+            <AppLayout>
+              <Home />
+            </AppLayout>
+          )
+        }
+      />
+      <Route
+        path="/register"
+        element={
+          userDetails ? (
+            <Navigate to="/dashboard" />
+          ) : (
+            <Register setUser={setUserDetails} />
+          )
+        }
+      />
 
-        <Route
-          path="/login"
-          element={
-            userDetails ? (
-              <Navigate to="/dashboard" />
-            ) : (
-              <Login setUser={setUserDetails} />
-            )
-          }
-        />
+      <Route
+        path="/login"
+        element={
+          userDetails ? (
+            <Navigate to="/dashboard" />
+          ) : (
+            <Login setUser={setUserDetails} />
+          )
+        }
+      />
 
-        <Route
-          path="/reset-password"
-          element={
-            userDetails ? <Navigate to="/dashboard" /> : <ResetPassword />
-          }
-        />
+      <Route
+        path="/reset-password"
+        element={userDetails ? <Navigate to="/dashboard" /> : <ResetPassword />}
+      />
 
-        <Route
-          path="/dashboard"
-          element={
-            userDetails ? (
-              <UserLayout>
-                <Dashboard user={userDetails} />
-              </UserLayout>
-            ) : (
-              <Navigate to="/login" />
-            )
-          }
-        />
+      <Route
+        path="/dashboard"
+        element={
+          userDetails ? (
+            <UserLayout user={userDetails}>
+              <Dashboard user={userDetails} />
+            </UserLayout>
+          ) : (
+            <Navigate to="/login" />
+          )
+        }
+      />
 
-        <Route
-          path="/logout"
-          element={
-            userDetails ? (
-              <Logout setUser={setUserDetails} />
-            ) : (
-              <Navigate to="/login" />
-            )
-          }
-        />
-      </Routes>
-    </BrowserRouter>
+      <Route
+        path="/logout"
+        element={
+          userDetails ? (
+            <Logout setUser={setUserDetails} />
+          ) : (
+            <Navigate to="/login" />
+          )
+        }
+      />
+    </Routes>
   );
 }
 

@@ -1,7 +1,7 @@
 function Footer(){
     return(
-        <div className="container">
-            This is footer
+       <div className="container-fluid bg-light text-center py-3">
+            All right reserverd.
         </div>
     );
 }
