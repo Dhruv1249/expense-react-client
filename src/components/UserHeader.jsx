@@ -1,6 +1,9 @@
+import { useSelector } from "react-redux";
 import { Link } from "react-router-dom";
+import {} from 'react-redux';
 
-function UserHeader({user}) {
+function UserHeader({}) {
+  const user = useSelector((state)=> state.userDetails);
   return (
     <nav
       className="navbar navbar-expand-lg bg-dark border-bottom border-body"

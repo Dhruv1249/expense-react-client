@@ -1,10 +1,10 @@
 import UserFooter from "./UserFooter";
 import UserHeader from "./UserHeader";
 
-function UserLayout({ user,children }) {
+function UserLayout({ children }) {
   return (
     <>
-      <UserHeader user={user} />
+      <UserHeader/>
       {children}
       <UserFooter />
     </>

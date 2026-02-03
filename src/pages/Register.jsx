@@ -2,7 +2,11 @@ import { useState } from "react";
 import axios from "axios";
 import { useNavigate, Link } from "react-router-dom";
 import { serverEndpoint } from "../config/appConfig";
-function Register({ setUser }) {
+import { useDispatch } from 'react-redux';
+import { SET_USER } from "../redux/user/action";
+
+function Register() {
+  const dispatch = useDispatch();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -64,7 +68,10 @@ function Register({ setUser }) {
           body,
           config,
         );
-        setUser(response.data.user);
+        dispatch({
+          type: SET_USER,
+          payload: response.data.user
+        });
         console.log(response);
         setMessage("User authenticated");
         navigate("/",{replace:true});

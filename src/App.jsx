@@ -3,39 +3,52 @@ import Register from "./pages/Register";
 import ResetPassword from "./pages/ResetPassword";
 import Home from "./pages/Home";
 import AppLayout from "./components/AppLayout";
-import { useEffect, useState } from "react";
+import {useEffect, useState } from "react";
 import Dashboard from "./pages/Dashboard";
 import Logout from "./pages/Logout";
 import UserLayout from "./components/UserLayout";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import axios from "axios";
-import { serverEndpoint } from "./config/appConfig";
-import { useSelector, useDispatch } from "react-redux";
+import {serverEndpoint} from "./config/appConfig";
+import { useSelector ,useDispatch} from "react-redux";
+import { SET_USER } from "./redux/user/action";
 function App() {
   const dispatch = useDispatch();
-  //const [loading, setLoading] = useState(true);
-  const [userDetails, setUserDetails] = useSelector(
-    (state) => state.userDetails,
-  );
+  const userDetails = useSelector((state) => state.userDetails);
+  const [loading, setLoading] = useState(true);
+  
   const isUserLoggedIn = async () => {
     try {
       const response = await axios.post(
         `${serverEndpoint}/auth/is-user-logged-in`,
         {},
-        { withCredentials: true },
+        { withCredentials: true }
       );
+
+      // setUserDetails(response.data.user);
+      dispatch({
+        type: SET_USER,
+        payload: response.data.user
+      });
     } catch (error) {
       console.log(error);
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
     isUserLoggedIn();
   }, []);
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
   return (
     <Routes>
-      <Route
-        path="/"
+      <Route 
+        path="/" 
         element={
           userDetails ? (
             <Navigate to="/dashboard" />
@@ -52,7 +65,7 @@ function App() {
           userDetails ? (
             <Navigate to="/dashboard" />
           ) : (
-            <Register setUser={setUserDetails} />
+            <Register />
           )
         }
       />
@@ -63,14 +76,20 @@ function App() {
           userDetails ? (
             <Navigate to="/dashboard" />
           ) : (
-            <Login setUser={setUserDetails} />
+            <Login />
           )
         }
       />
 
       <Route
         path="/reset-password"
-        element={userDetails ? <Navigate to="/dashboard" /> : <ResetPassword />}
+        element={
+          userDetails ? (
+            <Navigate to="/dashboard" />
+          ) : (
+            <ResetPassword />
+          )
+        }
       />
 
       <Route
@@ -90,7 +109,7 @@ function App() {
         path="/logout"
         element={
           userDetails ? (
-            <Logout setUser={setUserDetails} />
+            <Logout />
           ) : (
             <Navigate to="/login" />
           )

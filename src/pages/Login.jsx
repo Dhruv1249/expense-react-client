@@ -1,9 +1,11 @@
 import { useState } from "react";
 import axios from "axios";
 import { useNavigate, Link } from "react-router-dom";
-import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
+import {GoogleOAuthProvider,GoogleLogin} from '@react-oauth/google';
 import { serverEndpoint } from "../config/appConfig";
-import { useDispatch } from "react-redux";
+import { useDispatch } from 'react-redux';
+import { SET_USER } from "../redux/user/action";
+
 function Login() {
   const dispatch = useDispatch();
   const [formData, setFormData] = useState({
@@ -12,7 +14,7 @@ function Login() {
   });
   const [errors, setErrors] = useState({});
   const [message, setMessage] = useState("");
-
+  
   const handleChange = (event) => {
     const name = event.target.name;
     const value = event.target.value;
@@ -38,7 +40,7 @@ function Login() {
     setErrors(newError);
     return isValid;
   };
-  const navigate = useNavigate();
+    const navigate = useNavigate();
   const handleFormSubmit = async (event) => {
     event.preventDefault();
     if (validate()) {
@@ -53,15 +55,18 @@ function Login() {
           body,
           config,
         );
-        setUser(response.data.user);
+        // setUser(response.data.user);
+        dispatch({
+          type: SET_USER,
+          payload: response.data.user
+        })
+
         console.log(response);
         setMessage("User authenticated");
-        navigate("/", { replace: true });
+        navigate("/",{replace:true});
       } catch (error) {
         console.log(error);
-        const errorMessage =
-          error.response?.data?.message ||
-          "Something went wrong. Please try again later";
+        const errorMessage = error.response?.data?.message || "Something went wrong. Please try again later";
         setErrors({
           message: errorMessage,
         });
@@ -70,85 +75,84 @@ function Login() {
       console.log("Form has errors");
     }
   };
-  const handleGoogleSuccess = async (authResponse) => {
-    try {
-      const body = {
-        idToken: authResponse?.credential,
-      };
-      const response = await axios.post(
-        `${serverEndpoint}/auth/google-auth`,
-        body,
-        { withCredentials: true },
-      );
-      dispatch({
-        type: SET_USER,
-      });
-    } catch (error) {
-      console.log(error);
-      dispatch({ type: CLEAR_USER });
-    }
-  };
-  const handleGoogleFailure = (error) => {
-    console.log(error);
-    setErrors({
-      message: "Something went wrong while performing google single sign-on",
-    });
-  };
+const handleGoogleSuccess= async(authResponse) => {
+  try{
+    const body = {
+    idToken: authResponse?.credential,
+  }
+const response = await axios.post(`${serverEndpoint}/auth/google-auth`,
+  body,{withCredentials: true});
+  dispatch({
+    type: SET_USER,
+    payload: response.data.user
+  });
+  navigate("/",{replace:true});
+}
+catch(error){
+  console.log(error);
+  setErrors({
+    message: "Unable to process google sso"
+  });
+}
+};
+const handleGoogleFailure=(error) => {
+  console.log(error);
+  setErrors({
+    message: 'Something went wrong while performing google single sign-on'
+  });
+
+};
   return (
     <div className="container text-center">
       <h3>Login to continue</h3>
       {errors.message && (
         <div className="alert alert-danger">{errors.message}</div>
       )}
-      {message && <div className="alert alert-success">{message}</div>}
+      {message && (
+        <div className="alert alert-success">{message}</div>
+      )}
       <div className="row justify-consent-center">
         <div className="col-6">
-          <form onSubmit={handleFormSubmit}>
-            <div>
-              <label>Email: </label>
-              <input
-                className="form-control"
-                type="email"
-                name="email"
-                placeholder="Enter email"
-                onChange={handleChange}
-              />
-              {errors.email && (
-                <div className="text-danger">{errors.email}</div>
-              )}
-            </div>
-            <div>
-              <label>Password: </label>
-              <input
-                className="form-control"
-                type="password"
-                name="password"
-                placeholder="Enter password"
-                onChange={handleChange}
-              />
-              {errors.password && (
-                <div className="text-danger">{errors.password}</div>
-              )}
-            </div>
 
-            <div>
-              <button className="btn btn-primary" type="submit">
-                Login
-              </button>
-            </div>
-          </form>
+      <form onSubmit={handleFormSubmit}>
+        <div>
+          <label>Email: </label>
+          <input
+            className="form-control"
+            type="email"
+            name="email"
+            placeholder="Enter email"
+            onChange={handleChange}
+          />
+          {errors.email && <div className="text-danger">{errors.email}</div>}
         </div>
+        <div>
+          <label>Password: </label>
+          <input
+            className="form-control"
+            type="password"
+            name="password"
+            placeholder="Enter password"
+            onChange={handleChange}
+          />
+          {errors.password && <div className="text-danger">{errors.password}</div>}
+        </div>
+
+        <div>
+          <button className="btn btn-primary" type="submit">
+            Login
+          </button>
+        </div>
+      </form>
+      </div>
       </div>
       <div className="row justify-consent-center">
         <div className="col-6">
           <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
-            <GoogleLogin
-              onSuccess={handleGoogleSuccess}
-              onError={handleGoogleFailure}
-            />
+            <GoogleLogin onSuccess={handleGoogleSuccess} onError={handleGoogleFailure}/>
           </GoogleOAuthProvider>
         </div>
-      </div>
+        </div>
       <p className="mt-3">
         <Link to="/reset-password">Forgot Password?</Link>
       </p>
