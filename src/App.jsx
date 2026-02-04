@@ -3,32 +3,33 @@ import Register from "./pages/Register";
 import ResetPassword from "./pages/ResetPassword";
 import Home from "./pages/Home";
 import AppLayout from "./components/AppLayout";
-import {useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import Dashboard from "./pages/Dashboard";
 import Logout from "./pages/Logout";
 import UserLayout from "./components/UserLayout";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import axios from "axios";
-import {serverEndpoint} from "./config/appConfig";
-import { useSelector ,useDispatch} from "react-redux";
+import { serverEndpoint } from "./config/appConfig";
+import { useSelector, useDispatch } from "react-redux";
 import { SET_USER } from "./redux/user/action";
+import Groups from "./pages/Groups";
 function App() {
   const dispatch = useDispatch();
   const userDetails = useSelector((state) => state.userDetails);
   const [loading, setLoading] = useState(true);
-  
+
   const isUserLoggedIn = async () => {
     try {
       const response = await axios.post(
         `${serverEndpoint}/auth/is-user-logged-in`,
         {},
-        { withCredentials: true }
+        { withCredentials: true },
       );
 
       // setUserDetails(response.data.user);
       dispatch({
         type: SET_USER,
-        payload: response.data.user
+        payload: response.data.user,
       });
     } catch (error) {
       console.log(error);
@@ -47,8 +48,8 @@ function App() {
 
   return (
     <Routes>
-      <Route 
-        path="/" 
+      <Route
+        path="/"
         element={
           userDetails ? (
             <Navigate to="/dashboard" />
@@ -61,35 +62,17 @@ function App() {
       />
       <Route
         path="/register"
-        element={
-          userDetails ? (
-            <Navigate to="/dashboard" />
-          ) : (
-            <Register />
-          )
-        }
+        element={userDetails ? <Navigate to="/dashboard" /> : <Register />}
       />
 
       <Route
         path="/login"
-        element={
-          userDetails ? (
-            <Navigate to="/dashboard" />
-          ) : (
-            <Login />
-          )
-        }
+        element={userDetails ? <Navigate to="/dashboard" /> : <Login />}
       />
 
       <Route
         path="/reset-password"
-        element={
-          userDetails ? (
-            <Navigate to="/dashboard" />
-          ) : (
-            <ResetPassword />
-          )
-        }
+        element={userDetails ? <Navigate to="/dashboard" /> : <ResetPassword />}
       />
 
       <Route
@@ -106,14 +89,20 @@ function App() {
       />
 
       <Route
-        path="/logout"
+        path="/groups"
         element={
           userDetails ? (
-            <Logout />
+            <UserLayout>
+              <Groups />
+            </UserLayout>
           ) : (
             <Navigate to="/login" />
           )
         }
+      />
+      <Route
+        path="/logout"
+        element={userDetails ? <Logout /> : <Navigate to="/login" />}
       />
     </Routes>
   );
