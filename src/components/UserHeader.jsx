@@ -4,7 +4,6 @@ import {} from "react-redux";
 
 function UserHeader() {
   const user = useSelector((state) => state.userDetails);
-
   return (
     <nav
       className="navbar navbar-expand-lg bg-dark border-bottom border-body"
@@ -29,9 +28,11 @@ function UserHeader() {
 
         <div className="collapse navbar-collapse" id="navbarSupportedContent">
           <ul className="navbar-nav ms-auto mb-2 mb-lg-0">
-            <Link className="nav-link" to="/groups">
-              My Groups
-            </Link>
+            <li className="nav-item">
+              <Link className="nav-link" to="/groups">
+                My Groups
+              </Link>
+            </li>
           </ul>
           <ul className="navbar-nav ms-auto mb-2 mb-lg-0">
             <li className="nav-item dropdown">

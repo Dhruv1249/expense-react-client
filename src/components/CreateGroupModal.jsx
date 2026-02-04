@@ -1,11 +1,10 @@
 import { useState } from "react";
 import axios from "axios";
 import { serverEndpoint } from "../config/appConfig";
-function CreateGroupModal({ show, onHide }) {
+function CreateGroupModal({ show, onHide ,onSuccess}) {
   
   if(!show) return null;
 
-  function CreateGroup({show, onHide}) {
    const [formData, setFormData] = useState({
      name: "",
      description: "",
@@ -45,7 +44,9 @@ function CreateGroupModal({ show, onHide }) {
           `${serverEndpoint}/groups/create`,
           {name: formData.name, description: formData.description},
           {withCredentials: true}
-        )
+        );
+        onSuccess();
+        onHide();
       } catch (error) {
         console.log(error);
       }
@@ -54,7 +55,7 @@ function CreateGroupModal({ show, onHide }) {
   return (
     <div className="modal show d-block">
       <div className="modal-dialog modal-dialog-centered">
-        <div className="modal-content border-0 rounded-0 shadow-0">
+        <div className="modal-content border-0 rounded-4 shadow">
           <form>
             <div className="modal-header border-0">
               <h5>Create Group</h5>
@@ -101,7 +102,7 @@ function CreateGroupModal({ show, onHide }) {
               >
                 Close
               </button>
-              <button type="submit" className="btn btn-primary">
+              <button type="submit" className="btn btn-primary" onClick={handleSubmit}>
                 Create Group
               </button>
             </div>
@@ -111,5 +112,5 @@ function CreateGroupModal({ show, onHide }) {
     </div>
   );
 }
-}
+
 export default CreateGroupModal;
