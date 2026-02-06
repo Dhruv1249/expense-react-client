@@ -1,12 +1,14 @@
-function Student1({name = "Tommy", rollNumber = 10}) {
-    return(
+function Student1({ name = 'Tommy', rollNumber = 10 }) {
+    
+    return (
         <>
-        <p>
-            Student Name: {name}
-            <br/>
-            Roll Number: {rollNumber}
-        </p>
+            <p>
+                Student Name: {name}
+                <br/>
+                Roll Number: {rollNumber}
+            </p>
         </>
     );
 }
-export default Student1
+
+export default Student1;

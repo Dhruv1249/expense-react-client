@@ -1,41 +1,33 @@
 import { useState } from "react";
 
-function Student4(){
+function Student4() {
     const [visible, setVisible] = useState(true);
 
-    const StudentList = [
-        {name: "Tommy", rollNumber:1},
-        {name: "Tuffy", rollNumber:2},
-        {name: "Jimmy", rollNumber:3},
-        {name: "Pluto", rollNumber:4},
+    const studentList = [
+        { name: "Tommy", rollNumber: 1 },
+        { name: "Pluto", rollNumber: 2 },
+        { name: "Sundae", rollNumber: 3 },
     ];
 
     const handleClick = () => {
-        if(visible === false){
-        setVisible(true);
+        setVisible(!visible);
+    };
 
-        }
-        else{
-            setVisible(false);
-        }
-    }
-    return(
+    return (
         <div>
-            {visible && <button onClick={handleClick}>Hide Students</button>}
-            {!visible && <button onClick={handleClick}>Show Students</button>}
-            
+            <button onClick={handleClick}>{visible ? 'Hide Students' : 'Display Students'}</button>
+
             {visible && (
                 <>
-                    {StudentList.map((s) => (
-                        <p key={s.rollNumber}>
+                    {studentList.map((s) => (
+                        <p>
                             Roll Number: {s.rollNumber}
-                            <br></br>
+                            <br />
                             Name: {s.name}
                         </p>
                     ))}
                 </>
             )}
-
         </div>
     );
 }

@@ -1,17 +1,21 @@
-import { CLEAR_USER, SET_USER } from "./actions";
+import { CLEAR_USER, SET_USER } from "./action";
 
-// Gets called every time dispatch function is called
-// Irrespective of the action type and payload
+// Gets called everytime dispatch function is called
+// Irrespective of the action and payload.
 export const userReducer = (state = null, action) => {
-  switch (action.type) {
-    // This case helps us to set the user data when the user logs in
-    case SET_USER:
-      return action.payload;
-    // This case helps us to clear the user data when the user logs out
-    case CLEAR_USER:
-      return null;
-    // This case helps us to update the user data when the user updates their details
-    default:
-      return state;
-  }
+    switch (action.type) {
+        // This action helps in login functionality
+        case SET_USER:
+            return action.payload;
+        
+        // This case helps in logout functionality.
+        case CLEAR_USER:
+            return null;
+
+        // This case helps in handling cases where userReducer
+        // is invoked due to change in some other state variable
+        // maintained by redux.
+        default:
+            return state;
+    }
 };
