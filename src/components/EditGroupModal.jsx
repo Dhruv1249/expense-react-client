@@ -43,7 +43,7 @@ function EditGroupModal({ show, onHide, onSuccess, group }) {
         const response = await axios.put(
           `${serverEndpoint}/groups/update`,
           {
-            _id: group._id,
+            groupId: group._id,
             name: formData.name,
             description: formData.description,
           },

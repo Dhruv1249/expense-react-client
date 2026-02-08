@@ -36,6 +36,10 @@ function Groups() {
         });
     };
 
+    const handleGroupDelete = (groupId) => {
+        setGroups((prevGroups) => prevGroups.filter((g) => g._id !== groupId));
+    };
+
     useEffect(() => {
         fetchGroups();
     }, []);
@@ -117,6 +121,7 @@ function Groups() {
                             <GroupCard
                                 group={group}
                                 onUpdate={handleGroupUpdateSuccess}
+                                onDelete={handleGroupDelete}
                             />
                         </div>
                     ))}

@@ -12,6 +12,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { SET_USER } from "./redux/user/action";
 import Groups from "./pages/Groups";
 import GroupExpenses from "./pages/GroupExpenses";
+import Register from "./pages/Register";
 
 function App() {
     const dispatch = useDispatch();
@@ -78,6 +79,19 @@ function App() {
                     ) : (
                         <AppLayout>
                             <Login />
+                        </AppLayout>
+                    )
+                }
+            />
+
+            <Route
+                path="/register"
+                element={
+                    userDetails ? (
+                        <Navigate to="/dashboard" />
+                    ) : (
+                        <AppLayout>
+                            <Register />
                         </AppLayout>
                     )
                 }
