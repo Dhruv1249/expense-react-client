@@ -65,12 +65,14 @@ function UserHeader() {
                                         fontSize: "12px",
                                     }}
                                 >
-                                    {user?.name
+                                    {user?.username
+                                        ? user.username.charAt(0).toUpperCase()
+                                        : user?.name
                                         ? user.name.charAt(0).toUpperCase()
                                         : "U"}
                                 </div>
                                 <span className="text-dark fw-medium small">
-                                    {user ? user.name : "Account"}
+                                    {user?.username ? `@${user.username}` : user?.name || "Account"}
                                 </span>
                             </Link>
                             <ul className="dropdown-menu dropdown-menu-end shadow-lg border-0 mt-2 rounded-3">
@@ -79,8 +81,13 @@ function UserHeader() {
                                     style={{ minWidth: "200px" }}
                                 >
                                     <p className="mb-0 small fw-bold text-dark">
-                                        Signed in as
+                                        {user?.name || "Unknown"}
                                     </p>
+                                    {user?.username && (
+                                        <p className="mb-0 small text-primary">
+                                            @{user.username}
+                                        </p>
+                                    )}
                                     <p className="mb-0 small text-muted">
                                         {user?.email}
                                     </p>

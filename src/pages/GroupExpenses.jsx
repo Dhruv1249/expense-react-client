@@ -235,18 +235,24 @@ function GroupExpenses() {
                                                     fontSize: "14px",
                                                 }}
                                             >
-                                                {(member.user?.name || member.user?.email)
+                                                {(member.user?.username || member.user?.name || member.user?.email)
                                                     ?.charAt(0)
                                                     .toUpperCase()}
                                             </div>
                                             <div>
                                                 <div className="fw-medium">
-                                                    {member.user?.name || "Unknown"}
+                                                    {member.user?.username ? (
+                                                        <span className="text-primary">@{member.user.username}</span>
+                                                    ) : (
+                                                        member.user?.name || "Unknown"
+                                                    )}
                                                     {member.user?._id === user?._id && (
                                                         <span className="badge bg-info ms-2 small">You</span>
                                                     )}
                                                 </div>
                                                 <small className="text-muted">
+                                                    {member.user?.username && member.user?.name ? member.user.name : ""}
+                                                    {member.user?.username && member.user?.name && member.user?.email && " • "}
                                                     {member.user?.email}
                                                 </small>
                                             </div>

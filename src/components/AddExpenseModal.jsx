@@ -302,13 +302,20 @@ function AddExpenseModal({ show, onHide, onSuccess, groupId, members }) {
                                                             fontSize: "12px",
                                                         }}
                                                     >
-                                                        {(member.user.name || member.user.email)
+                                                        {(member.user.username || member.user.name || member.user.email)
                                                             ?.charAt(0)
                                                             .toUpperCase()}
                                                     </div>
-                                                    <span className="small fw-medium">
-                                                        {member.user.name || member.user.email}
-                                                    </span>
+                                                    <div>
+                                                        <span className="small fw-medium">
+                                                            {member.user.username ? `@${member.user.username}` : member.user.name || member.user.email}
+                                                        </span>
+                                                        {member.user.username && member.user.name && (
+                                                            <span className="text-muted small d-block">
+                                                                {member.user.name}
+                                                            </span>
+                                                        )}
+                                                    </div>
                                                 </div>
 
                                                 {formData.splitType !== "EQUAL" && (

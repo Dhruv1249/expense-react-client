@@ -33,6 +33,24 @@ function ExpenseCard({ expense, onSettle }) {
         });
     };
 
+    // Helper to display user with username
+    const getUserDisplay = (userData) => {
+        if (!userData) return "Unknown";
+        if (userData.username) {
+            return `${userData.name || userData.email} (@${userData.username})`;
+        }
+        return userData.name || userData.email;
+    };
+
+    // Short display for split list
+    const getUserShortDisplay = (userData) => {
+        if (!userData) return "Unknown";
+        if (userData.username) {
+            return `@${userData.username}`;
+        }
+        return userData.name || userData.email;
+    };
+
     return (
         <div className="card border-0 shadow-sm rounded-4 mb-3">
             <div className="card-body p-4">
@@ -61,7 +79,7 @@ function ExpenseCard({ expense, onSettle }) {
                         <i className="bi bi-credit-card me-1"></i> Paid by
                     </small>
                     <span className="fw-medium">
-                        {expense.payer?.name || expense.payer?.email || "Unknown"}
+                        {getUserDisplay(expense.payer)}
                         {isPayer && <span className="badge bg-primary ms-2">You</span>}
                     </span>
                 </div>
@@ -77,9 +95,14 @@ function ExpenseCard({ expense, onSettle }) {
                                 className="list-group-item d-flex justify-content-between align-items-center py-2 px-3"
                             >
                                 <div>
-                                    <span className="small">
-                                        {split.user?.name || split.user?.email || "Unknown"}
+                                    <span className="small fw-medium">
+                                        {getUserShortDisplay(split.user)}
                                     </span>
+                                    {split.user?.name && split.user?.username && (
+                                        <span className="text-muted small ms-1">
+                                            ({split.user.name})
+                                        </span>
+                                    )}
                                     {split.user?._id === user?._id && (
                                         <span className="badge bg-primary bg-opacity-10 text-primary ms-2 small">You</span>
                                     )}

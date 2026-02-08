@@ -5,6 +5,7 @@ import { serverEndpoint } from "../config/appConfig";
 import { useDispatch } from "react-redux";
 import { SET_USER } from "../redux/user/action";
 import { Link } from "react-router-dom";
+import UsernameModal from "../components/UsernameModal";
 
 function Login() {
     const dispatch = useDispatch();
@@ -15,6 +16,10 @@ function Login() {
     });
     const [errors, setErrors] = useState({});
     const [message, setMessage] = useState("");
+    
+    // Username modal state for Google SSO new users
+    const [showUsernameModal, setShowUsernameModal] = useState(false);
+    const [googleData, setGoogleData] = useState(null);
 
     const handleChange = (event) => {
         const name = event.target.name;
@@ -45,7 +50,6 @@ function Login() {
     };
 
     const handleFormSubmit = async (event) => {
-        // Prevent default behaviour of form which is to do complete page reload.
         event.preventDefault();
 
         if (validate()) {
@@ -60,7 +64,6 @@ function Login() {
                     body,
                     config
                 );
-                // setUser(response.data.user);
                 dispatch({
                     type: SET_USER,
                     payload: response.data.user,
@@ -68,7 +71,7 @@ function Login() {
             } catch (error) {
                 console.log(error);
                 setErrors({
-                    message: "Something went wrong, please try again",
+                    message: error.response?.data?.message || "Something went wrong, please try again",
                 });
             }
         }
@@ -84,16 +87,37 @@ function Login() {
                 body,
                 { withCredentials: true }
             );
-            dispatch({
-                type: SET_USER,
-                payload: response.data.user,
-            });
+            
+            // Check if new user needs to set username
+            if (response.data.needsUsername) {
+                setGoogleData(response.data.googleData);
+                setShowUsernameModal(true);
+            } else {
+                dispatch({
+                    type: SET_USER,
+                    payload: response.data.user,
+                });
+            }
         } catch (error) {
             console.log(error);
             setErrors({
                 message: "Unable to process google sso, please try again",
             });
         }
+    };
+
+    const handleUsernameComplete = (user) => {
+        setShowUsernameModal(false);
+        setGoogleData(null);
+        dispatch({
+            type: SET_USER,
+            payload: user,
+        });
+    };
+
+    const handleUsernameModalClose = () => {
+        setShowUsernameModal(false);
+        setGoogleData(null);
     };
 
     const handleGoogleFailure = (error) => {
@@ -118,7 +142,7 @@ function Login() {
                                     <span className="text-primary">Back</span>
                                 </h2>
                                 <p className="text-muted">
-                                    Login to manage your MergeMoney account
+                                    Login to manage your expenses
                                 </p>
                             </div>
 
@@ -205,10 +229,25 @@ function Login() {
                                 </GoogleOAuthProvider>
                             </div>
 
+                            {/* Register Link */}
+                            <p className="text-center mt-4 mb-0">
+                                Don't have an account?{" "}
+                                <Link to="/register" className="text-decoration-none fw-medium">
+                                    Register here
+                                </Link>
+                            </p>
                         </div>
                     </div>
                 </div>
             </div>
+
+            {/* Username Modal for new Google SSO users */}
+            <UsernameModal
+                show={showUsernameModal}
+                onClose={handleUsernameModalClose}
+                googleData={googleData}
+                onSuccess={handleUsernameComplete}
+            />
         </div>
     );
 }
