@@ -21,7 +21,8 @@ function createWindow() {
     mainWindow.loadURL("http://localhost:5173");
     mainWindow.webContents.openDevTools();
   } else {
-    mainWindow.loadFile(path.join(__dirname, "../dist/index.html"));
+    // Use app.getAppPath() for correct path resolution in packaged app
+    mainWindow.loadFile(path.join(app.getAppPath(), "dist/index.html"));
   }
 
   mainWindow.on("closed", () => {
