@@ -2,12 +2,12 @@ import { Link } from "react-router-dom";
 
 function Header() {
     return (
-        <nav className="navbar navbar-expand-lg navbar-light bg-white sticky-top border-bottom shadow-sm">
-            <div className="container py-2">
-                <Link className="navbar-brand d-flex align-items-center fw-bold fs-3 text-dark" to="/">
-                    <span className="text-primary">Merge</span>Money
+        <nav className="navbar navbar-expand-lg py-3 sticky-top bg-white border-bottom border-light">
+            <div className="container">
+                <Link className="navbar-brand d-flex align-items-center fw-bold text-dark fs-4" to="/">
+                     <i className="bi bi-wallet2 text-success me-2"></i>
+                     MergeMoney
                 </Link>
-
                 <button
                     className="navbar-toggler border-0"
                     type="button"
@@ -21,15 +21,15 @@ function Header() {
                 </button>
 
                 <div className="collapse navbar-collapse" id="navbarSupportedContent">
-                    <ul className="navbar-nav ms-auto mb-2 mb-lg-0 align-items-lg-center">
+                    <ul className="navbar-nav ms-auto mb-2 mb-lg-0 align-items-lg-center gap-2">
                         <li className="nav-item">
-                            <Link className="nav-link fw-medium px-3 text-dark" aria-current="page" to="/">
-                                Home
+                            <Link className="btn btn-outline-success rounded-pill px-4 fw-bold" to="/login">
+                                Log In
                             </Link>
                         </li>
-                        <li className="nav-item ms-lg-3 mt-2 mt-lg-0">
-                            <Link className="btn btn-primary rounded-pill px-4 fw-bold shadow-sm" to="/login">
-                                Get Started
+                        <li className="nav-item">
+                            <Link className="btn btn-success rounded-pill px-4 fw-bold shadow-sm text-white" to="/register">
+                                Sign Up
                             </Link>
                         </li>
                     </ul>

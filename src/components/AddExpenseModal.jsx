@@ -243,8 +243,8 @@ function AddExpenseModal({ show, onHide, onSuccess, groupId, members }) {
                                             type="button"
                                             className={`btn ${
                                                 formData.splitType === type
-                                                    ? "btn-primary"
-                                                    : "btn-outline-primary"
+                                                    ? "btn-success"
+                                                    : "btn-outline-success"
                                             }`}
                                             onClick={() =>
                                                 setFormData({ ...formData, splitType: type })
@@ -295,7 +295,7 @@ function AddExpenseModal({ show, onHide, onSuccess, groupId, members }) {
                                                         />
                                                     )}
                                                     <div
-                                                        className="rounded-circle bg-primary bg-opacity-10 d-flex align-items-center justify-content-center me-2 fw-bold text-primary"
+                                                        className="rounded-circle bg-success bg-opacity-10 d-flex align-items-center justify-content-center me-2 fw-bold text-success"
                                                         style={{
                                                             width: "32px",
                                                             height: "32px",

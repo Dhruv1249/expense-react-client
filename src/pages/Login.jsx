@@ -139,7 +139,7 @@ function Login() {
                             <div className="text-center mb-4">
                                 <h2 className="fw-bold text-dark">
                                     Welcome{" "}
-                                    <span className="text-primary">Back</span>
+                                    <span className="text-success">Back</span>
                                 </h2>
                                 <p className="text-muted">
                                     Login to manage your expenses
@@ -196,7 +196,7 @@ function Login() {
                                 </div>
 
                                 <div className="d-flex justify-content-center">
-                                    <button className="btn btn-primary w-100 btn-md rounded-pill fw-bold shadow-sm mb-4">
+                                    <button className="btn btn-success w-100 btn-md rounded-pill fw-bold shadow-sm mb-4">
                                         Sign In
                                     </button>
                                 </div>
@@ -232,7 +232,7 @@ function Login() {
                             {/* Register Link */}
                             <p className="text-center mt-4 mb-0">
                                 Don't have an account?{" "}
-                                <Link to="/register" className="text-decoration-none fw-medium">
+                                <Link to="/register" className="text-decoration-none fw-medium text-success">
                                     Register here
                                 </Link>
                             </p>

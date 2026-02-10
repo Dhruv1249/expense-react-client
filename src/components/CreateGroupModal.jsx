@@ -98,8 +98,8 @@ function CreateGroupModal({ show, onHide, onSuccess }) {
                 <div className="modal-content border-0 rounded-4 shadow-lg p-3">
                     <form onSubmit={handleSubmit}>
                         <div className="modal-header border-0 pb-0">
-                            <div className="bg-primary bg-opacity-10 p-2 rounded-3 me-3">
-                                <i className="bi bi-plus-circle-fill text-primary fs-4"></i>
+                            <div className="bg-success bg-opacity-10 p-2 rounded-3 me-3">
+                                <i className="bi bi-plus-circle-fill text-success fs-4"></i>
                             </div>
                             <h5 className="fw-bold mb-0">Start a New Circle</h5>
                             <button
@@ -175,7 +175,7 @@ function CreateGroupModal({ show, onHide, onSuccess }) {
                             </button>
                             <button
                                 type="submit"
-                                className="btn btn-primary rounded-pill px-5 fw-bold shadow-sm"
+                                className="btn btn-success rounded-pill px-5 fw-bold shadow-sm"
                                 disabled={loading}
                             >
                                 {loading ? (

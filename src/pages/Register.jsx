@@ -135,8 +135,8 @@ function Register() {
     <div className="container py-5" style={{ maxWidth: "500px" }}>
       <div className="bg-white rounded-4 shadow-sm p-4 border">
         <div className="text-center mb-4">
-          <div className="bg-primary bg-opacity-10 d-inline-flex p-3 rounded-circle mb-3">
-            <i className="bi bi-person-plus-fill text-primary fs-3"></i>
+          <div className="bg-success bg-opacity-10 d-inline-flex p-3 rounded-circle mb-3">
+            <i className="bi bi-person-plus-fill text-success fs-3"></i>
           </div>
           <h3 className="fw-bold">Create Account</h3>
           <p className="text-muted">Join us to start tracking expenses</p>
@@ -236,7 +236,7 @@ function Register() {
           </div>
 
           <button 
-            className="btn btn-primary w-100 py-2 fw-bold rounded-pill" 
+            className="btn btn-success w-100 py-2 fw-bold rounded-pill" 
             type="submit"
             disabled={usernameStatus.checking}
           >
@@ -245,7 +245,7 @@ function Register() {
         </form>
 
         <p className="text-center mt-4 mb-0">
-          Already have an account? <Link to="/login" className="text-decoration-none fw-medium">Login here</Link>
+          Already have an account? <Link to="/login" className="text-decoration-none fw-medium text-success">Login here</Link>
         </p>
       </div>
     </div>

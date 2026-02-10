@@ -64,29 +64,32 @@ function EditGroupModal({ show, onHide, onSuccess, group }) {
       <div className="modal-dialog modal-dialog-centered">
         <div className="modal-content border-0 rounded-4 shadow">
           <form onSubmit={handleSubmit}>
-            <div className="modal-header border-0">
-              <h5>Edit Group</h5>
+            <div className="modal-header border-0 pb-0 p-4">
+              <div className="bg-success bg-opacity-10 p-2 rounded-3 me-3">
+                  <i className="bi bi-pencil-square text-success fs-4"></i>
+              </div>
+              <h5 className="fw-bold mb-0">Edit Group Settings</h5>
               <button
                 type="button"
-                className="btn-close"
+                className="btn-close shadow-none"
                 onClick={onHide}
               ></button>
             </div>
-            <div className="modal-body">
+            <div className="modal-body px-4 py-4">
               {errors.message && (
-                <div className="alert alert-danger alert-dismissible fade show" role="alert">
+                <div className="alert alert-danger alert-dismissible fade show border-0 small" role="alert">
                   {errors.message}
                   <button type="button" className="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
               )}
               
-              <div className="mb-3">
-                <label className="form-label small fw-bold">Group Name</label>
+              <div className="mb-4">
+                <label className="form-label small fw-bold text-secondary text-uppercase">Group Name</label>
                 <input
                   type="text"
-                  className={
-                    errors.name ? "form-control is-invalid" : "form-control"
-                  }
+                  className={`form-control form-control-lg bg-light border-0 fs-6 ${
+                    errors.name ? "is-invalid" : ""
+                  }`}
                   name="name"
                   value={formData.name}
                   onChange={onChange}
@@ -95,14 +98,12 @@ function EditGroupModal({ show, onHide, onSuccess, group }) {
                   <div className="invalid-feedback">{errors.name}</div>
                 )}
               </div>
-              <div className="mb-3">
-                <label className="form-label small fw-bold">Description</label>
+              <div className="mb-2">
+                <label className="form-label small fw-bold text-secondary text-uppercase">Description</label>
                 <textarea
-                  className={
-                    errors.description
-                      ? "form-control is-invalid"
-                      : "form-control"
-                  }
+                  className={`form-control form-control-lg bg-light border-0 fs-6 ${
+                    errors.description ? "is-invalid" : ""
+                  }`}
                   name="description"
                   rows="3"
                   value={formData.description}
@@ -113,19 +114,19 @@ function EditGroupModal({ show, onHide, onSuccess, group }) {
                 )}
               </div>
             </div>
-            <div className="modal-footer border-0">
+            <div className="modal-footer border-0 px-4 pb-4">
               <button
                 type="button"
-                className="btn btn-light rounded-pill"
+                className="btn btn-light rounded-pill px-4 fw-medium"
                 onClick={onHide}
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="btn btn-primary mx-4 rounded-pill"
+                className="btn btn-success rounded-pill px-5 fw-bold shadow-sm"
               >
-                Update
+                Save Changes
               </button>
             </div>
           </form>

@@ -5,6 +5,8 @@ import { useSelector } from "react-redux";
 import { serverEndpoint } from "../config/appConfig";
 import ExpenseCard from "../components/ExpenseCard";
 import AddExpenseModal from "../components/AddExpenseModal";
+import ExpenseDetailsModal from "../components/ExpenseDetailsModal";
+import EditGroupModal from "../components/EditGroupModal";
 
 function GroupExpenses() {
     const { groupId } = useParams();
@@ -14,6 +16,10 @@ function GroupExpenses() {
     const [loading, setLoading] = useState(true);
     const [showAddModal, setShowAddModal] = useState(false);
     const [roleLoading, setRoleLoading] = useState(null);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const [totalExpenses, setTotalExpenses] = useState(0);
+    const EXPENSES_PER_PAGE = 10;
 
     const fetchGroupDetails = async () => {
         try {
@@ -27,13 +33,16 @@ function GroupExpenses() {
         }
     };
 
-    const fetchExpenses = async () => {
+    const fetchExpenses = async (page = 1) => {
         try {
             const response = await axios.get(
-                `${serverEndpoint}/expenses/group/${groupId}`,
+                `${serverEndpoint}/expenses/group/${groupId}?page=${page}&limit=${EXPENSES_PER_PAGE}`,
                 { withCredentials: true }
             );
-            setExpenses(response.data);
+            setExpenses(response.data.expenses);
+            setCurrentPage(response.data.currentPage);
+            setTotalPages(response.data.totalPages);
+            setTotalExpenses(response.data.totalExpenses);
         } catch (error) {
             console.error("Error fetching expenses:", error);
         }
@@ -42,7 +51,7 @@ function GroupExpenses() {
     useEffect(() => {
         const loadData = async () => {
             setLoading(true);
-            await Promise.all([fetchGroupDetails(), fetchExpenses()]);
+            await Promise.all([fetchGroupDetails(), fetchExpenses(1)]);
             setLoading(false);
         };
         loadData();
@@ -54,8 +63,10 @@ function GroupExpenses() {
     );
     const isAdmin = currentUserMember?.role === "admin";
 
-    const handleExpenseAdded = (newExpense) => {
-        setExpenses((prev) => [newExpense, ...prev]);
+    const handleExpenseAdded = () => {
+        // Refetch first page to show the new expense at top
+        setCurrentPage(1);
+        fetchExpenses(1);
     };
 
     const handleSettle = (expenseId, debtorId) => {
@@ -76,6 +87,13 @@ function GroupExpenses() {
         );
     };
 
+    const handlePageChange = (page) => {
+        if (page < 1 || page > totalPages) return;
+        setCurrentPage(page);
+        fetchExpenses(page);
+        window.scrollTo({ top: 0, behavior: "smooth" });
+    };
+
     const handleRoleChange = async (memberId, newRole) => {
         setRoleLoading(memberId);
         try {
@@ -88,7 +106,6 @@ function GroupExpenses() {
                 },
                 { withCredentials: true }
             );
-            // Update group with new member roles
             if (response.data.group) {
                 setGroup(response.data.group);
             }
@@ -104,6 +121,85 @@ function GroupExpenses() {
         return expenses.reduce((sum, expense) => sum + expense.amount, 0);
     };
 
+    const renderPagination = () => {
+        if (totalPages <= 1) return null;
+
+        const pages = [];
+        const maxVisible = 5;
+        let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+        let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+        if (endPage - startPage + 1 < maxVisible) {
+            startPage = Math.max(1, endPage - maxVisible + 1);
+        }
+
+        for (let i = startPage; i <= endPage; i++) {
+            pages.push(i);
+        }
+
+        return (
+            <nav aria-label="Expense pagination" className="mt-4">
+                <ul className="pagination justify-content-center mb-0">
+                    <li className={`page-item ${currentPage === 1 ? "disabled" : ""}`}>
+                        <button
+                            className="page-link"
+                            onClick={() => handlePageChange(currentPage - 1)}
+                        >
+                            <i className="bi bi-chevron-left"></i>
+                        </button>
+                    </li>
+                    {startPage > 1 && (
+                        <>
+                            <li className="page-item">
+                                <button className="page-link" onClick={() => handlePageChange(1)}>1</button>
+                            </li>
+                            {startPage > 2 && (
+                                <li className="page-item disabled">
+                                    <span className="page-link">…</span>
+                                </li>
+                            )}
+                        </>
+                    )}
+                    {pages.map((page) => (
+                        <li key={page} className={`page-item ${currentPage === page ? "active" : ""}`}>
+                            <button className="page-link" onClick={() => handlePageChange(page)}>
+                                {page}
+                            </button>
+                        </li>
+                    ))}
+                    {endPage < totalPages && (
+                        <>
+                            {endPage < totalPages - 1 && (
+                                <li className="page-item disabled">
+                                    <span className="page-link">…</span>
+                                </li>
+                            )}
+                            <li className="page-item">
+                                <button className="page-link" onClick={() => handlePageChange(totalPages)}>
+                                    {totalPages}
+                                </button>
+                            </li>
+                        </>
+                    )}
+                    <li className={`page-item ${currentPage === totalPages ? "disabled" : ""}`}>
+                        <button
+                            className="page-link"
+                            onClick={() => handlePageChange(currentPage + 1)}
+                        >
+                            <i className="bi bi-chevron-right"></i>
+                        </button>
+                    </li>
+                </ul>
+                <p className="text-center text-muted small mt-2 mb-0">
+                    Page {currentPage} of {totalPages} • {totalExpenses} total expenses
+                </p>
+            </nav>
+        );
+    };
+
+    const [selectedExpense, setSelectedExpense] = useState(null);
+    const [showDetailsModal, setShowDetailsModal] = useState(false);
+    const [showEditModal, setShowEditModal] = useState(false);
+
     if (loading) {
         return (
             <div
@@ -111,7 +207,7 @@ function GroupExpenses() {
                 style={{ minHeight: "60vh" }}
             >
                 <div
-                    className="spinner-grow text-primary"
+                    className="spinner-border text-success"
                     role="status"
                     style={{ width: "3rem", height: "3rem" }}
                 >
@@ -124,226 +220,154 @@ function GroupExpenses() {
         );
     }
 
+    const handleExpenseClick = (expense) => {
+        setSelectedExpense(expense);
+        setShowDetailsModal(true);
+    };
+
+    const handleExpenseUpdate = (updatedExpense) => {
+        setExpenses((prev) =>
+            prev.map((e) => (e._id === updatedExpense._id ? updatedExpense : e))
+        );
+        setSelectedExpense(updatedExpense);
+    };
+
     return (
-        <div className="container py-5 px-4 px-md-5">
-            {/* Breadcrumb */}
-            <nav aria-label="breadcrumb" className="mb-4">
-                <ol className="breadcrumb">
-                    <li className="breadcrumb-item">
-                        <Link to="/dashboard" className="text-decoration-none">
-                            <i className="bi bi-house-door me-1"></i>Groups
-                        </Link>
-                    </li>
-                    <li className="breadcrumb-item active">
-                        {group?.name || "Expenses"}
-                    </li>
-                </ol>
-            </nav>
-
-            {/* Group Header */}
-            <div className="bg-white rounded-4 shadow-sm p-4 mb-4 border">
-                <div className="row align-items-center">
-                    <div className="col-md-8">
-                        <div className="d-flex align-items-center mb-2">
-                            <div className="bg-primary bg-opacity-10 p-3 rounded-3 me-3">
-                                <i className="bi bi-collection-fill text-primary fs-3"></i>
-                            </div>
-                            <div>
-                                <h3 className="fw-bold mb-1">{group?.name}</h3>
-                                <p className="text-muted mb-0 small">
-                                    {group?.description || "No description"}
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="col-md-4 text-md-end mt-3 mt-md-0">
-                        <button
-                            className="btn btn-success rounded-pill px-4 py-2 fw-bold shadow-sm"
-                            onClick={() => setShowAddModal(true)}
-                        >
-                            <i className="bi bi-plus-lg me-2"></i>
-                            Add Expense
-                        </button>
+        <div className="py-2">
+            {/* Header */}
+            <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4">
+                <div className="mb-3 mb-md-0">
+                    <nav aria-label="breadcrumb">
+                        <ol className="breadcrumb mb-1 small text-muted">
+                            <li className="breadcrumb-item"><Link to="/dashboard" className="text-secondary text-decoration-none">Groups</Link></li>
+                            <li className="breadcrumb-item active" aria-current="page">{group?.name}</li>
+                        </ol>
+                    </nav>
+                    <div className="d-flex align-items-center">
+                        <h2 className="fw-bold mb-0 me-3 display-6" style={{ letterSpacing: "-1px" }}>{group?.name}</h2>
+                        <span className="badge bg-light text-secondary border fw-normal">{group?.members?.length || 0} members</span>
                     </div>
                 </div>
-
-                {/* Stats Row */}
-                <div className="row mt-4 g-3">
-                    <div className="col-md-4">
-                        <div className="bg-light rounded-3 p-3 text-center">
-                            <small className="text-muted text-uppercase fw-bold d-block mb-1">
-                                Total Spent
-                            </small>
-                            <span className="fs-4 fw-bold text-primary">
-                                ₹{calculateTotalSpent().toLocaleString()}
-                            </span>
-                        </div>
-                    </div>
-                    <div className="col-md-4">
-                        <div className="bg-light rounded-3 p-3 text-center">
-                            <small className="text-muted text-uppercase fw-bold d-block mb-1">
-                                Members
-                            </small>
-                            <span className="fs-4 fw-bold text-secondary">
-                                {group?.members?.length || 0}
-                            </span>
-                        </div>
-                    </div>
-                    <div className="col-md-4">
-                        <div className="bg-light rounded-3 p-3 text-center">
-                            <small className="text-muted text-uppercase fw-bold d-block mb-1">
-                                Expenses
-                            </small>
-                            <span className="fs-4 fw-bold text-success">
-                                {expenses.length}
-                            </span>
-                        </div>
-                    </div>
+                <div className="d-flex gap-2">
+                    <button 
+                        className="btn btn-success rounded-pill px-4 fw-bold shadow-sm d-flex align-items-center"
+                        onClick={() => setShowAddModal(true)}
+                    >
+                        <i className="bi bi-plus-lg me-2"></i> Add Expense
+                    </button>
                 </div>
             </div>
 
-            {/* Members List */}
-            <div className="bg-white rounded-4 shadow-sm p-4 mb-4 border">
-                <h5 className="fw-bold mb-3">
-                    <i className="bi bi-people me-2 text-primary"></i>
-                    Group Members
-                    {isAdmin && (
-                        <span className="badge bg-primary ms-2 small">
-                            Admin
-                        </span>
-                    )}
-                </h5>
-                <div className="table-responsive">
-                    <table className="table table-hover align-middle mb-0">
-                        <thead className="table-light">
-                            <tr>
-                                <th>Member</th>
-                                <th>Role</th>
-                                {isAdmin && <th className="text-end">Actions</th>}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {group?.members?.map((member, index) => (
-                                <tr key={index}>
-                                    <td>
-                                        <div className="d-flex align-items-center">
-                                            <div
-                                                className="rounded-circle bg-primary bg-opacity-10 d-flex align-items-center justify-content-center me-2 fw-bold text-primary"
-                                                style={{
-                                                    width: "36px",
-                                                    height: "36px",
-                                                    fontSize: "14px",
-                                                }}
-                                            >
-                                                {(member.user?.username || member.user?.name || member.user?.email)
-                                                    ?.charAt(0)
-                                                    .toUpperCase()}
-                                            </div>
-                                            <div>
-                                                <div className="fw-medium">
-                                                    {member.user?.username ? (
-                                                        <span className="text-primary">@{member.user.username}</span>
-                                                    ) : (
-                                                        member.user?.name || "Unknown"
-                                                    )}
-                                                    {member.user?._id === user?._id && (
-                                                        <span className="badge bg-info ms-2 small">You</span>
-                                                    )}
+            {/* Summary Cards */}
+            <div className="card border-0 shadow-sm rounded-4 mb-5 overflow-hidden">
+                <div className="card-body p-4">
+                     <div className="row g-4 justify-content-center">
+                        <div className="col-12 text-center">
+                             <h6 className="text-secondary text-uppercase fw-bold small mb-3">Total Group Spending</h6>
+                             <div className="d-flex align-items-center justify-content-center mb-2">
+                                <h1 className="fw-bold mb-0 display-4" style={{ letterSpacing: "-2px" }}>₹{calculateTotalSpent().toLocaleString()}</h1>
+                             </div>
+                             <div className="d-flex justify-content-center gap-3 mt-3">
+                                <div className="d-flex align-items-center small text-secondary">
+                                    <span className="d-inline-block rounded-circle bg-success me-2" style={{width: "8px", height: "8px"}}></span>
+                                    Total Spent
+                                </div>
+                             </div>
+                        </div>
+                     </div>
+                </div>
+            </div>
+
+            <div className="row">
+                <div className="col-lg-8">
+                    <div className="d-flex justify-content-between align-items-center mb-4">
+                        <h4 className="fw-bold mb-0">Recent Transactions</h4>
+                        <div className="d-flex gap-2">
+                            <button className="btn btn-sm btn-light text-secondary"><i className="bi bi-filter"></i></button>
+                            <button className="btn btn-sm btn-light text-secondary"><i className="bi bi-search"></i></button>
+                        </div>
+                    </div>
+
+                    <div className="card border-0 shadow-sm rounded-4 overflow-hidden">
+                        <div className="table-responsive">
+                            <table className="table table-hover align-middle mb-0">
+                                <thead className="bg-light">
+                                    <tr>
+                                        <th className="border-0 ps-4 py-3 text-secondary text-uppercase small fw-bold">Date</th>
+                                        <th className="border-0 py-3 text-secondary text-uppercase small fw-bold">Expense Name</th>
+                                        <th className="border-0 py-3 text-secondary text-uppercase small fw-bold">Payer</th>
+                                        <th className="border-0 py-3 text-secondary text-uppercase small fw-bold text-end pe-4">Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {expenses.map((expense) => (
+                                        <tr key={expense._id} style={{ cursor: "pointer" }} onClick={() => handleExpenseClick(expense)}>
+                                            <td className="ps-4 py-3">
+                                                <div className="d-flex flex-column">
+                                                    <span className="fw-bold text-dark">{new Date(expense.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</span>
                                                 </div>
-                                                <small className="text-muted">
-                                                    {member.user?.username && member.user?.name ? member.user.name : ""}
-                                                    {member.user?.username && member.user?.name && member.user?.email && " • "}
-                                                    {member.user?.email}
-                                                </small>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <span
-                                            className={`badge ${
-                                                member.role === "admin"
-                                                    ? "bg-primary"
-                                                    : member.role === "manager"
-                                                    ? "bg-info"
-                                                    : member.role === "viewer"
-                                                    ? "bg-secondary"
-                                                    : "bg-success"
-                                            }`}
-                                        >
-                                            {member.role}
-                                        </span>
-                                    </td>
-                                    {isAdmin && (
-                                        <td className="text-end">
-                                            {member.user?._id !== user?._id ? (
-                                                <select
-                                                    className="form-select form-select-sm w-auto d-inline-block"
-                                                    value={member.role}
-                                                    onChange={(e) =>
-                                                        handleRoleChange(
-                                                            member.user?._id,
-                                                            e.target.value
-                                                        )
-                                                    }
-                                                    disabled={roleLoading === member.user?._id}
-                                                >
-                                                    <option value="admin">Admin</option>
-                                                    <option value="manager">Manager</option>
-                                                    <option value="member">Member</option>
-                                                    <option value="viewer">Viewer</option>
-                                                </select>
-                                            ) : (
-                                                <span className="text-muted small">-</span>
-                                            )}
-                                        </td>
+                                            </td>
+                                            <td className="py-3">
+                                                <div className="d-flex align-items-center">
+                                                    <div className="rounded-circle bg-light d-flex align-items-center justify-content-center me-3" style={{ width: "40px", height: "40px" }}>
+                                                        <i className="bi bi-receipt text-secondary fs-5"></i>
+                                                    </div>
+                                                    <span className="fw-bold text-dark">{expense.description}</span>
+                                                </div>
+                                            </td>
+                                            <td className="py-3">
+                                                <div className="d-flex align-items-center">
+                                                    <div className="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-2" style={{ width: "24px", height: "24px", fontSize: "10px" }}>
+                                                        {expense.payer?.username?.charAt(0).toUpperCase()}
+                                                    </div>
+                                                    <span className="text-secondary small">{expense.payer?.username === user?.username ? "You" : expense.payer?.username}</span>
+                                                </div>
+                                            </td>
+                                            <td className="text-end pe-4 py-3">
+                                                <span className="fw-bold text-dark">₹{expense.amount.toLocaleString()}</span>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                    {expenses.length === 0 && (
+                                        <tr>
+                                            <td colSpan="4" className="text-center py-5 text-muted">
+                                                No expenses yet. Add your first expense!
+                                            </td>
+                                        </tr>
                                     )}
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            {/* Expenses Section */}
-            <div className="mb-4">
-                <h5 className="fw-bold mb-3">
-                    <i className="bi bi-receipt me-2 text-success"></i>
-                    Expenses
-                </h5>
-
-                {expenses.length === 0 ? (
-                    <div className="bg-white rounded-4 shadow-sm p-5 text-center border">
-                        <div className="bg-light rounded-circle d-inline-flex p-4 mb-3">
-                            <i
-                                className="bi bi-receipt text-muted"
-                                style={{ fontSize: "2.5rem" }}
-                            ></i>
+                                </tbody>
+                            </table>
                         </div>
-                        <h5 className="fw-bold">No Expenses Yet</h5>
-                        <p className="text-muted mb-4">
-                            Start tracking your shared expenses by adding the
-                            first one!
-                        </p>
-                        <button
-                            className="btn btn-outline-success rounded-pill px-4"
-                            onClick={() => setShowAddModal(true)}
-                        >
-                            <i className="bi bi-plus-lg me-2"></i>
-                            Add First Expense
-                        </button>
                     </div>
-                ) : (
-                    <div className="row">
-                        {expenses.map((expense) => (
-                            <div key={expense._id} className="col-lg-6">
-                                <ExpenseCard
-                                    expense={expense}
-                                    onSettle={handleSettle}
-                                />
+                     {renderPagination()}
+                </div>
+                
+                <div className="col-lg-4">
+                    <div className="card border-0 shadow-sm rounded-4 mb-4">
+                         <div className="card-header bg-white border-0 pt-4 px-4 pb-0 d-flex justify-content-between align-items-center">
+                            <h5 className="fw-bold mb-0">Group Members</h5>
+                            {isAdmin && <button className="btn btn-sm btn-link text-success fw-bold text-decoration-none p-0" onClick={() => setShowEditModal(true)}>Settings</button>}
+                         </div>
+                         <div className="card-body px-4">
+                            <div className="list-group list-group-flush">
+                                {group?.members?.map((member, index) => (
+                                    <div key={index} className="list-group-item border-0 px-0 py-3 d-flex align-items-center">
+                                         <div className="rounded-circle bg-light d-flex align-items-center justify-content-center me-3 fw-bold text-secondary" style={{ width: "40px", height: "40px" }}>
+                                            {(member.user?.username || member.user?.name || "?").charAt(0).toUpperCase()}
+                                         </div>
+                                         <div>
+                                            <div className="fw-bold text-dark mb-0 lh-1">
+                                                {member.user?.username || member.user?.name}
+                                                {member.user?._id === user?._id && <span className="text-muted small ms-1">(You)</span>}
+                                            </div>
+                                            <small className="text-muted" style={{ fontSize: "0.8rem" }}>{member.role}</small>
+                                         </div>
+                                    </div>
+                                ))}
                             </div>
-                        ))}
+                         </div>
                     </div>
-                )}
+                </div>
             </div>
 
             {/* Add Expense Modal */}
@@ -353,6 +377,23 @@ function GroupExpenses() {
                 onSuccess={handleExpenseAdded}
                 groupId={groupId}
                 members={group?.members || []}
+            />
+
+            {/* Expense Details Modal */}
+            <ExpenseDetailsModal
+                show={showDetailsModal}
+                onHide={() => setShowDetailsModal(false)}
+                expense={selectedExpense}
+                currentUser={user}
+                onUpdate={handleExpenseUpdate}
+            />
+
+            {/* Edit Group Modal */}
+            <EditGroupModal
+                show={showEditModal}
+                onHide={() => setShowEditModal(false)}
+                onSuccess={(updatedGroup) => setGroup(updatedGroup)}
+                group={group}
             />
         </div>
     );

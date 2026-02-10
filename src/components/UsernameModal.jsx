@@ -148,7 +148,7 @@ function UsernameModal({ show, onClose, googleData, onSuccess }) {
                             </button>
                             <button
                                 type="submit"
-                                className="btn btn-primary rounded-pill px-4 fw-bold"
+                                className="btn btn-success rounded-pill px-4 fw-bold"
                                 disabled={loading || usernameStatus.checking || usernameStatus.available !== true}
                             >
                                 {loading ? (

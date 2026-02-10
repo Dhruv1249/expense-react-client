@@ -1,8 +1,10 @@
 function Footer() {
     return (
-        <div className="container-fluid bg-light text-center py-3">
-            All rights reserved.
-        </div>
+        <footer className="bg-white py-4 border-top">
+            <div className="container text-center text-muted small">
+                &copy; 2026 MergeMoney. All rights reserved.
+            </div>
+        </footer>
     );
 }
 
