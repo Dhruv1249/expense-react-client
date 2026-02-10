@@ -80,7 +80,7 @@ function ExpenseDetailsModal({ show, onHide, expense, currentUser, onUpdate }) {
                                 return (
                                     <div key={split.user._id} className="d-flex align-items-center justify-content-between p-3 rounded-3 bg-light border border-light">
                                         <div className="d-flex align-items-center">
-                                            <div className="rounded-circle bg-white d-flex align-items-center justify-content-center me-3 fw-bold shadow-sm" style={{ width: "40px", height: "40px" }}>
+                                            <div className="rounded-circle bg-white d-flex align-items-center justify-content-center me-3 fw-bold shadow-sm flex-shrink-0" style={{ width: "40px", height: "40px", aspectRatio: "1/1" }}>
                                                 {(split.user.username || split.user.name || "?").charAt(0).toUpperCase()}
                                             </div>
                                             <div>

@@ -37,7 +37,7 @@ function Home() {
                         </div>
                         <div className="col-lg-6 mt-5 mt-lg-0 position-relative">
                             <div className="position-absolute top-50 start-50 translate-middle bg-success rounded-circle opacity-10 blur-3xl" style={{ width: "400px", height: "400px", filter: "blur(80px)", zIndex: -1 }}></div>
-                            <img src="https://placehold.co/600x400/f6f9f8/00cc88?text=SplitWise+UI+Mockup" alt="App Preview" className="img-fluid rounded-4 shadow-lg border border-light" />
+                            <img src="https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80" alt="App Preview" className="img-fluid rounded-4 shadow-lg border border-light" />
                         </div>
                     </div>
                 </div>

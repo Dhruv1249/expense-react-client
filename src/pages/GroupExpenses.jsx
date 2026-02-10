@@ -317,7 +317,7 @@ function GroupExpenses() {
                                             </td>
                                             <td className="py-3">
                                                 <div className="d-flex align-items-center">
-                                                    <div className="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-2" style={{ width: "24px", height: "24px", fontSize: "10px" }}>
+                                                    <div className="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-2 flex-shrink-0" style={{ width: "24px", height: "24px", fontSize: "10px", aspectRatio: "1/1" }}>
                                                         {expense.payer?.username?.charAt(0).toUpperCase()}
                                                     </div>
                                                     <span className="text-secondary small">{expense.payer?.username === user?.username ? "You" : expense.payer?.username}</span>
@@ -352,7 +352,7 @@ function GroupExpenses() {
                             <div className="list-group list-group-flush">
                                 {group?.members?.map((member, index) => (
                                     <div key={index} className="list-group-item border-0 px-0 py-3 d-flex align-items-center">
-                                         <div className="rounded-circle bg-light d-flex align-items-center justify-content-center me-3 fw-bold text-secondary" style={{ width: "40px", height: "40px" }}>
+                                         <div className="rounded-circle bg-light d-flex align-items-center justify-content-center me-3 fw-bold text-secondary flex-shrink-0" style={{ width: "40px", height: "40px", objectFit: "cover", aspectRatio: "1/1" }}>
                                             {(member.user?.username || member.user?.name || "?").charAt(0).toUpperCase()}
                                          </div>
                                          <div>

@@ -102,6 +102,19 @@ function App() {
                 element={
                     userDetails ? (
                         <UserLayout>
+                            <Dashboard />
+                        </UserLayout>
+                    ) : (
+                        <Navigate to="/login" />
+                    )
+                }
+            />
+
+            <Route
+                path="/groups"
+                element={
+                    userDetails ? (
+                        <UserLayout>
                             <Groups />
                         </UserLayout>
                     ) : (

@@ -295,11 +295,12 @@ function AddExpenseModal({ show, onHide, onSuccess, groupId, members }) {
                                                         />
                                                     )}
                                                     <div
-                                                        className="rounded-circle bg-success bg-opacity-10 d-flex align-items-center justify-content-center me-2 fw-bold text-success"
+                                                        className="rounded-circle bg-success bg-opacity-10 d-flex align-items-center justify-content-center me-2 fw-bold text-success flex-shrink-0"
                                                         style={{
                                                             width: "32px",
                                                             height: "32px",
                                                             fontSize: "12px",
+                                                            aspectRatio: "1/1"
                                                         }}
                                                     >
                                                         {(member.user.username || member.user.name || member.user.email)

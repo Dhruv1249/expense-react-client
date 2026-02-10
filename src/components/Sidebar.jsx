@@ -10,7 +10,7 @@ function Sidebar() {
 
     return (
         <aside
-            className="d-flex flex-column flex-shrink-0 p-3 bg-white"
+            className="d-none d-md-flex flex-column flex-shrink-0 p-3 bg-white"
             style={{ 
                 width: "250px", 
                 height: "100vh", 
@@ -23,7 +23,7 @@ function Sidebar() {
         >
             <div className="d-flex align-items-center mb-4 mb-md-0 me-md-auto text-decoration-none px-2">
                 <i className="bi bi-wallet2 fs-2 text-success me-2"></i>
-                <span className="fs-4 fw-bold text-dark" style={{ letterSpacing: "-0.5px" }}>SplitWise</span>
+                <span className="fs-4 fw-bold text-dark" style={{ letterSpacing: "-0.5px" }}>MergeMoney</span>
             </div>
             
             <hr className="my-4 opacity-10" />
@@ -35,9 +35,8 @@ function Sidebar() {
                         Dashboard
                     </NavLink>
                 </li>
-                {/* Pointing to dashboard for now as it lists groups */}
                 <li className="nav-item mb-1">
-                    <NavLink to="/dashboard" className={({ isActive }) => `nav-link d-flex align-items-center px-3 py-2 rounded-3 text-secondary ${isActive ? "bg-success bg-opacity-10 text-success fw-bold" : ""}`}>
+                    <NavLink to="/groups" className={({ isActive }) => `nav-link d-flex align-items-center px-3 py-2 rounded-3 text-secondary ${isActive ? "bg-success bg-opacity-10 text-success fw-bold" : ""}`}>
                         <i className="bi bi-people me-3 fs-5"></i>
                         Groups
                     </NavLink>
@@ -46,7 +45,7 @@ function Sidebar() {
             
             <div className="mt-auto pt-3 border-top">
                 <div className="d-flex align-items-center px-2 py-2">
-                    <div className="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3 shadow-sm" style={{ width: "40px", height: "40px", fontSize: "1.2rem", fontWeight: "600" }}>
+                    <div className="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3 shadow-sm flex-shrink-0" style={{ width: "40px", height: "40px", fontSize: "1.2rem", fontWeight: "600", aspectRatio: "1/1" }}>
                         {getInitials(user?.name)}
                     </div>
                     <div className="flex-grow-1 overflow-hidden">

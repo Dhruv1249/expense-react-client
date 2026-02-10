@@ -33,18 +33,25 @@ function UserHeader() {
 
                 <div className="collapse navbar-collapse" id="userNavbar">
                     {/* Primary App Navigation */}
-                    <ul className="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-4">
-                        {/* <li className="nav-item">
+                    <ul className="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-4 d-md-none">
+                         <li className="nav-item">
                             <Link
-                                className={`nav-link px-3 ${isActive(
-                                    "/dashboard"
-                                )}`}
+                                className={`nav-link px-3 ${isActive("/dashboard")}`}
                                 to="/dashboard"
                             >
-                                <i className="bi bi-speedometer2 me-1"></i>{" "}
+                                <i className="bi bi-grid me-2"></i>
+                                Dashboard
+                            </Link>
+                        </li>
+                        <li className="nav-item">
+                            <Link
+                                className={`nav-link px-3 ${isActive("/groups")}`}
+                                to="/groups"
+                            >
+                                <i className="bi bi-people me-2"></i>
                                 Groups
                             </Link>
-                        </li> */}
+                        </li>
                     </ul>
 
                     {/* User Profile Dropdown */}
@@ -58,11 +65,12 @@ function UserHeader() {
                                 aria-expanded="false"
                             >
                                 <div
-                                    className="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-2 shadow-sm"
+                                    className="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-2 shadow-sm flex-shrink-0"
                                     style={{
                                         width: "28px",
                                         height: "28px",
                                         fontSize: "12px",
+                                        aspectRatio: "1/1"
                                     }}
                                 >
                                     {user?.username

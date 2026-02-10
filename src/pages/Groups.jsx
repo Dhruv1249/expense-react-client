@@ -176,7 +176,7 @@ function Groups() {
             
             {groups.length === 0 && !loading && (
                  <div className="text-center py-5">
-                    <div className="bg-white rounded-circle d-inline-flex p-4 mb-4 shadow-sm" style={{ width: "100px", height: "100px", alignItems: "center", justifyContent: "center" }}>
+                    <div className="bg-white rounded-circle d-inline-flex p-4 mb-4 shadow-sm flex-shrink-0" style={{ width: "100px", height: "100px", alignItems: "center", justifyContent: "center", aspectRatio: "1/1" }}>
                         <i className="bi bi-people text-success" style={{ fontSize: "3rem" }}></i>
                     </div>
                     <h4 className="fw-bold mb-2">No groups yet</h4>
