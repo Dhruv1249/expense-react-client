@@ -1,4 +1,4 @@
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useSelector } from "react-redux";
@@ -6,16 +6,21 @@ import { serverEndpoint } from "../config/appConfig";
 import ExpenseCard from "../components/ExpenseCard";
 import AddExpenseModal from "../components/AddExpenseModal";
 import ExpenseDetailsModal from "../components/ExpenseDetailsModal";
-import EditGroupModal from "../components/EditGroupModal";
+import GroupSettingsModal from "../components/GroupSettingsModal";
 
 function GroupExpenses() {
     const { groupId } = useParams();
+    const navigate = useNavigate();
     const user = useSelector((state) => state.userDetails);
     const [group, setGroup] = useState(null);
     const [expenses, setExpenses] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showAddModal, setShowAddModal] = useState(false);
-    const [roleLoading, setRoleLoading] = useState(null);
+    const [showSettingsModal, setShowSettingsModal] = useState(false);
+    const [memberEmail, setMemberEmail] = useState("");
+    const [sidebarLoading, setSidebarLoading] = useState(null);
+    const [sidebarError, setSidebarError] = useState("");
+    const [sidebarSuccess, setSidebarSuccess] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [totalExpenses, setTotalExpenses] = useState(0);
@@ -57,14 +62,15 @@ function GroupExpenses() {
         loadData();
     }, [groupId]);
 
-    // Check if current user is admin
+    // Check current user role
     const currentUserMember = group?.members?.find(
         (m) => m.user?._id === user?._id
     );
     const isAdmin = currentUserMember?.role === "admin";
+    const isManager = currentUserMember?.role === "manager";
+    const canManage = isAdmin || isManager;
 
     const handleExpenseAdded = () => {
-        // Refetch first page to show the new expense at top
         setCurrentPage(1);
         fetchExpenses(1);
     };
@@ -94,31 +100,105 @@ function GroupExpenses() {
         window.scrollTo({ top: 0, behavior: "smooth" });
     };
 
+    // --- Sidebar: Role Change ---
     const handleRoleChange = async (memberId, newRole) => {
-        setRoleLoading(memberId);
+        setSidebarLoading(`role-${memberId}`);
         try {
             const response = await axios.put(
                 `${serverEndpoint}/groups/update-role`,
-                {
-                    groupId: groupId,
-                    userId: memberId,
-                    newRole: newRole,
-                },
+                { groupId, userId: memberId, newRole },
                 { withCredentials: true }
             );
             if (response.data.group) {
                 setGroup(response.data.group);
             }
+            setSidebarSuccess("Role updated");
+            setTimeout(() => setSidebarSuccess(""), 3000);
         } catch (error) {
-            console.error("Error updating role:", error);
-            alert(error.response?.data?.message || "Failed to update role");
+            setSidebarError(error.response?.data?.message || "Failed to update role");
+            setTimeout(() => setSidebarError(""), 4000);
         } finally {
-            setRoleLoading(null);
+            setSidebarLoading(null);
+        }
+    };
+
+    // --- Sidebar: Add member ---
+    const handleAddMember = async () => {
+        if (!memberEmail.trim()) return;
+        setSidebarLoading("add");
+        setSidebarError("");
+        try {
+            const response = await axios.post(
+                `${serverEndpoint}/groups/add-members`,
+                { groupId, emails: [memberEmail.trim()] },
+                { withCredentials: true }
+            );
+            if (response.data.notFound?.length > 0) {
+                setSidebarError(`Not found: ${response.data.notFound.join(", ")}`);
+                setTimeout(() => setSidebarError(""), 4000);
+            }
+            if (response.data.added?.length > 0) {
+                setSidebarSuccess(`Added ${response.data.added.join(", ")}`);
+                setTimeout(() => setSidebarSuccess(""), 3000);
+                await fetchGroupDetails();
+            }
+            setMemberEmail("");
+        } catch (error) {
+            setSidebarError(error.response?.data?.message || "Failed to add member");
+            setTimeout(() => setSidebarError(""), 4000);
+        } finally {
+            setSidebarLoading(null);
+        }
+    };
+
+    // --- Sidebar: Remove member ---
+    const handleRemoveMember = async (email) => {
+        if (!window.confirm(`Remove ${email} from this group?`)) return;
+        setSidebarLoading(`remove-${email}`);
+        try {
+            await axios.post(
+                `${serverEndpoint}/groups/remove-member`,
+                { groupId, email },
+                { withCredentials: true }
+            );
+            setSidebarSuccess("Member removed");
+            setTimeout(() => setSidebarSuccess(""), 3000);
+            await fetchGroupDetails();
+        } catch (error) {
+            setSidebarError(error.response?.data?.message || "Failed to remove member");
+            setTimeout(() => setSidebarError(""), 4000);
+        } finally {
+            setSidebarLoading(null);
+        }
+    };
+
+    // --- Header: Leave Group ---
+    const handleLeaveGroup = async () => {
+        if (!window.confirm("Are you sure you want to leave this group?")) return;
+        try {
+            await axios.post(
+                `${serverEndpoint}/groups/remove-member`,
+                { groupId, email: user.email },
+                { withCredentials: true }
+            );
+            navigate("/groups");
+        } catch (error) {
+            alert(error.response?.data?.message || "Failed to leave group");
         }
     };
 
     const calculateTotalSpent = () => {
         return expenses.reduce((sum, expense) => sum + expense.amount, 0);
+    };
+
+    const getRoleBadgeClass = (role) => {
+        switch (role) {
+            case "admin": return "role-badge role-badge-admin";
+            case "manager": return "role-badge role-badge-manager";
+            case "member": return "role-badge role-badge-member";
+            case "viewer": return "role-badge role-badge-viewer";
+            default: return "role-badge";
+        }
     };
 
     const renderPagination = () => {
@@ -198,7 +278,6 @@ function GroupExpenses() {
 
     const [selectedExpense, setSelectedExpense] = useState(null);
     const [showDetailsModal, setShowDetailsModal] = useState(false);
-    const [showEditModal, setShowEditModal] = useState(false);
 
     if (loading) {
         return (
@@ -249,6 +328,22 @@ function GroupExpenses() {
                     </div>
                 </div>
                 <div className="d-flex gap-2">
+                    {!isAdmin && (
+                        <button
+                            className="btn btn-outline-warning rounded-pill px-3 fw-bold d-flex align-items-center"
+                            onClick={handleLeaveGroup}
+                            title="Leave Group"
+                        >
+                            <i className="bi bi-box-arrow-left me-2"></i> Leave
+                        </button>
+                    )}
+                    <button
+                        className="btn btn-light rounded-pill px-3 fw-bold d-flex align-items-center"
+                        onClick={() => setShowSettingsModal(true)}
+                        title="Group Settings"
+                    >
+                        <i className="bi bi-gear me-2"></i> Settings
+                    </button>
                     <button 
                         className="btn btn-success rounded-pill px-4 fw-bold shadow-sm d-flex align-items-center"
                         onClick={() => setShowAddModal(true)}
@@ -342,29 +437,135 @@ function GroupExpenses() {
                      {renderPagination()}
                 </div>
                 
+                {/* Enhanced Sidebar */}
                 <div className="col-lg-4">
                     <div className="card border-0 shadow-sm rounded-4 mb-4">
                          <div className="card-header bg-white border-0 pt-4 px-4 pb-0 d-flex justify-content-between align-items-center">
                             <h5 className="fw-bold mb-0">Group Members</h5>
-                            {isAdmin && <button className="btn btn-sm btn-link text-success fw-bold text-decoration-none p-0" onClick={() => setShowEditModal(true)}>Settings</button>}
+                            <button
+                                className="btn btn-sm btn-link text-success fw-bold text-decoration-none p-0"
+                                onClick={() => setShowSettingsModal(true)}
+                            >
+                                <i className="bi bi-gear me-1"></i>Manage
+                            </button>
                          </div>
                          <div className="card-body px-4">
+                            {/* Sidebar Messages */}
+                            {sidebarError && (
+                                <div className="alert alert-danger py-1 px-2 small border-0 mb-3 d-flex align-items-center">
+                                    <i className="bi bi-exclamation-circle me-1"></i>
+                                    {sidebarError}
+                                </div>
+                            )}
+                            {sidebarSuccess && (
+                                <div className="alert alert-success py-1 px-2 small border-0 mb-3 d-flex align-items-center">
+                                    <i className="bi bi-check-circle me-1"></i>
+                                    {sidebarSuccess}
+                                </div>
+                            )}
+
                             <div className="list-group list-group-flush">
-                                {group?.members?.map((member, index) => (
-                                    <div key={index} className="list-group-item border-0 px-0 py-3 d-flex align-items-center">
-                                         <div className="rounded-circle bg-light d-flex align-items-center justify-content-center me-3 fw-bold text-secondary flex-shrink-0" style={{ width: "40px", height: "40px", objectFit: "cover", aspectRatio: "1/1" }}>
-                                            {(member.user?.username || member.user?.name || "?").charAt(0).toUpperCase()}
-                                         </div>
-                                         <div>
-                                            <div className="fw-bold text-dark mb-0 lh-1">
-                                                {member.user?.username || member.user?.name}
-                                                {member.user?._id === user?._id && <span className="text-muted small ms-1">(You)</span>}
+                                {group?.members?.map((member, index) => {
+                                    const isCurrentUser = member.user?._id === user?._id;
+                                    const email = member.user?.email || "";
+
+                                    return (
+                                        <div key={index} className="list-group-item border-0 px-0 py-3 d-flex align-items-center justify-content-between">
+                                            <div className="d-flex align-items-center min-width-0">
+                                                <div className="rounded-circle bg-light d-flex align-items-center justify-content-center me-3 fw-bold text-secondary flex-shrink-0" style={{ width: "40px", height: "40px", aspectRatio: "1/1" }}>
+                                                    {(member.user?.username || member.user?.name || "?").charAt(0).toUpperCase()}
+                                                </div>
+                                                <div className="min-width-0">
+                                                    <div className="fw-bold text-dark mb-0 lh-1 d-flex align-items-center gap-1">
+                                                        <span className="text-truncate" style={{ maxWidth: "100px" }}>
+                                                            {member.user?.username || member.user?.name}
+                                                        </span>
+                                                        {isCurrentUser && <span className="text-muted small">(You)</span>}
+                                                    </div>
+                                                    <span className={getRoleBadgeClass(member.role)} style={{ marginTop: "2px" }}>
+                                                        {member.role}
+                                                    </span>
+                                                </div>
                                             </div>
-                                            <small className="text-muted" style={{ fontSize: "0.8rem" }}>{member.role}</small>
-                                         </div>
-                                    </div>
-                                ))}
+
+                                            <div className="d-flex align-items-center gap-1">
+                                                {/* Quick role change (admin only) */}
+                                                {isAdmin && !isCurrentUser && (
+                                                    <select
+                                                        className="form-select form-select-sm border-0 bg-light fw-bold"
+                                                        style={{ width: "90px", fontSize: "0.7rem" }}
+                                                        value={member.role}
+                                                        onChange={(e) => handleRoleChange(member.user._id, e.target.value)}
+                                                        disabled={sidebarLoading === `role-${member.user._id}`}
+                                                    >
+                                                        <option value="admin">Admin</option>
+                                                        <option value="manager">Manager</option>
+                                                        <option value="member">Member</option>
+                                                        <option value="viewer">Viewer</option>
+                                                    </select>
+                                                )}
+                                                {/* Remove button (admin/manager, not self) */}
+                                                {canManage && !isCurrentUser && (
+                                                    <button
+                                                        className="btn btn-sm btn-link text-danger p-0 ms-1"
+                                                        onClick={() => handleRemoveMember(email)}
+                                                        disabled={sidebarLoading === `remove-${email}`}
+                                                        title="Remove member"
+                                                    >
+                                                        {sidebarLoading === `remove-${email}` ? (
+                                                            <span className="spinner-border spinner-border-sm"></span>
+                                                        ) : (
+                                                            <i className="bi bi-x-circle"></i>
+                                                        )}
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
+                                    );
+                                })}
                             </div>
+
+                            {/* Inline Add Member */}
+                            {canManage && (
+                                <div className="mt-3 pt-3 border-top">
+                                    <label className="form-label small fw-bold text-uppercase text-muted mb-2">
+                                        <i className="bi bi-person-plus me-1"></i> Add Member
+                                    </label>
+                                    <div className="input-group input-group-sm">
+                                        <input
+                                            type="email"
+                                            className="form-control bg-light border-0 px-3"
+                                            placeholder="email@example.com"
+                                            value={memberEmail}
+                                            onChange={(e) => setMemberEmail(e.target.value)}
+                                            onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), handleAddMember())}
+                                        />
+                                        <button
+                                            className="btn btn-success px-3 fw-bold"
+                                            onClick={handleAddMember}
+                                            disabled={sidebarLoading === "add"}
+                                        >
+                                            {sidebarLoading === "add" ? (
+                                                <span className="spinner-border spinner-border-sm"></span>
+                                            ) : (
+                                                <i className="bi bi-plus-lg"></i>
+                                            )}
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Leave Group (non-admin) */}
+                            {!isAdmin && (
+                                <div className="mt-3 pt-3 border-top">
+                                    <button
+                                        className="btn btn-outline-warning btn-sm rounded-pill w-100 fw-bold"
+                                        onClick={handleLeaveGroup}
+                                    >
+                                        <i className="bi bi-box-arrow-left me-1"></i> Leave Group
+                                    </button>
+                                </div>
+                            )}
                          </div>
                     </div>
                 </div>
@@ -388,12 +589,14 @@ function GroupExpenses() {
                 onUpdate={handleExpenseUpdate}
             />
 
-            {/* Edit Group Modal */}
-            <EditGroupModal
-                show={showEditModal}
-                onHide={() => setShowEditModal(false)}
-                onSuccess={(updatedGroup) => setGroup(updatedGroup)}
+            {/* Group Settings Modal */}
+            <GroupSettingsModal
+                show={showSettingsModal}
+                onHide={() => setShowSettingsModal(false)}
                 group={group}
+                onGroupUpdate={(updatedGroup) => setGroup(updatedGroup)}
+                onGroupDelete={() => navigate("/groups")}
+                onLeaveGroup={() => navigate("/groups")}
             />
         </div>
     );

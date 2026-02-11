@@ -264,3 +264,79 @@ h6 {
 .progress-bar {
   background-color: var(--success-color);
 }
+
+/* Role Badges */
+.role-badge {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  border-radius: 20px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: capitalize;
+  letter-spacing: 0.3px;
+}
+.role-badge-admin {
+  background-color: rgba(16, 185, 129, 0.12);
+  color: #059669;
+}
+.role-badge-manager {
+  background-color: rgba(59, 130, 246, 0.12);
+  color: #2563eb;
+}
+.role-badge-member {
+  background-color: rgba(100, 116, 139, 0.12);
+  color: #475569;
+}
+.role-badge-viewer {
+  background-color: rgba(148, 163, 184, 0.12);
+  color: #94a3b8;
+}
+
+/* Settings Modal Tabs */
+.settings-tabs {
+  border-bottom: 2px solid var(--border-color);
+  padding-bottom: 0;
+}
+.settings-tab {
+  background: none !important;
+  color: var(--secondary-color) !important;
+  border: none !important;
+  border-radius: 0 !important;
+  padding: 0.5rem 1rem !important;
+  font-weight: 600;
+  font-size: 0.85rem;
+  border-bottom: 2px solid transparent !important;
+  margin-bottom: -2px;
+  transition: all 0.2s ease;
+}
+.settings-tab:hover {
+  color: var(--text-dark) !important;
+  border-bottom-color: var(--border-color) !important;
+}
+.settings-tab.active {
+  color: var(--success-color) !important;
+  border-bottom-color: var(--success-color) !important;
+}
+.settings-tab-danger.active {
+  color: var(--danger-color) !important;
+  border-bottom-color: var(--danger-color) !important;
+}
+
+/* Danger Zone */
+.danger-zone {
+  border: 1.5px solid rgba(239, 68, 68, 0.25);
+  background-color: rgba(239, 68, 68, 0.03);
+}
+
+/* Member List Items */
+.member-list-item {
+  background: var(--bg-color);
+  transition: all 0.15s ease;
+}
+.member-list-item:hover {
+  background: #eef2f0;
+  transform: translateX(2px);
+}
+.min-width-0 {
+  min-width: 0;
+}
