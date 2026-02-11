@@ -24,6 +24,8 @@ function GroupExpenses() {
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [totalExpenses, setTotalExpenses] = useState(0);
+    const [groupStats, setGroupStats] = useState({ totalSpent: 0, pendingCount: 0, settledCount: 0, pendingAmount: 0 });
+    const [settleLoading, setSettleLoading] = useState(false);
     const EXPENSES_PER_PAGE = 10;
 
     const fetchGroupDetails = async () => {
@@ -53,10 +55,22 @@ function GroupExpenses() {
         }
     };
 
+    const fetchGroupStats = async () => {
+        try {
+            const response = await axios.get(
+                `${serverEndpoint}/expenses/group-stats/${groupId}`,
+                { withCredentials: true }
+            );
+            setGroupStats(response.data);
+        } catch (error) {
+            console.error("Error fetching group stats:", error);
+        }
+    };
+
     useEffect(() => {
         const loadData = async () => {
             setLoading(true);
-            await Promise.all([fetchGroupDetails(), fetchExpenses(1)]);
+            await Promise.all([fetchGroupDetails(), fetchExpenses(1), fetchGroupStats()]);
             setLoading(false);
         };
         loadData();
@@ -73,6 +87,28 @@ function GroupExpenses() {
     const handleExpenseAdded = () => {
         setCurrentPage(1);
         fetchExpenses(1);
+        fetchGroupStats();
+    };
+
+    const handleSettleAll = async () => {
+        if (!window.confirm("Settle ALL pending payments in this group? This cannot be undone.")) return;
+        setSettleLoading(true);
+        try {
+            await axios.post(
+                `${serverEndpoint}/expenses/settle-group`,
+                { groupId },
+                { withCredentials: true }
+            );
+            await Promise.all([fetchExpenses(currentPage), fetchGroupStats()]);
+        } catch (error) {
+            alert(error.response?.data?.message || "Failed to settle group");
+        } finally {
+            setSettleLoading(false);
+        }
+    };
+
+    const isExpenseSettled = (expense) => {
+        return expense.splits.every((split) => split.status === "SETTLED");
     };
 
     const handleSettle = (expenseId, debtorId) => {
@@ -91,6 +127,7 @@ function GroupExpenses() {
                 return expense;
             })
         );
+        fetchGroupStats();
     };
 
     const handlePageChange = (page) => {
@@ -185,10 +222,6 @@ function GroupExpenses() {
         } catch (error) {
             alert(error.response?.data?.message || "Failed to leave group");
         }
-    };
-
-    const calculateTotalSpent = () => {
-        return expenses.reduce((sum, expense) => sum + expense.amount, 0);
     };
 
     const getRoleBadgeClass = (role) => {
@@ -309,6 +342,7 @@ function GroupExpenses() {
             prev.map((e) => (e._id === updatedExpense._id ? updatedExpense : e))
         );
         setSelectedExpense(updatedExpense);
+        fetchGroupStats();
     };
 
     return (
@@ -337,6 +371,21 @@ function GroupExpenses() {
                             <i className="bi bi-box-arrow-left me-2"></i> Leave
                         </button>
                     )}
+                    {canManage && groupStats.pendingCount > 0 && (
+                        <button
+                            className="btn btn-outline-success rounded-pill px-3 fw-bold d-flex align-items-center"
+                            onClick={handleSettleAll}
+                            disabled={settleLoading}
+                            title="Settle all pending payments"
+                        >
+                            {settleLoading ? (
+                                <span className="spinner-border spinner-border-sm me-2"></span>
+                            ) : (
+                                <i className="bi bi-check2-all me-2"></i>
+                            )}
+                            Settle All
+                        </button>
+                    )}
                     <button
                         className="btn btn-light rounded-pill px-3 fw-bold d-flex align-items-center"
                         onClick={() => setShowSettingsModal(true)}
@@ -353,23 +402,43 @@ function GroupExpenses() {
                 </div>
             </div>
 
-            {/* Summary Cards */}
-            <div className="card border-0 shadow-sm rounded-4 mb-5 overflow-hidden">
-                <div className="card-body p-4">
-                     <div className="row g-4 justify-content-center">
-                        <div className="col-12 text-center">
-                             <h6 className="text-secondary text-uppercase fw-bold small mb-3">Total Group Spending</h6>
-                             <div className="d-flex align-items-center justify-content-center mb-2">
-                                <h1 className="fw-bold mb-0 display-4" style={{ letterSpacing: "-2px" }}>₹{calculateTotalSpent().toLocaleString()}</h1>
-                             </div>
-                             <div className="d-flex justify-content-center gap-3 mt-3">
-                                <div className="d-flex align-items-center small text-secondary">
-                                    <span className="d-inline-block rounded-circle bg-success me-2" style={{width: "8px", height: "8px"}}></span>
-                                    Total Spent
-                                </div>
-                             </div>
+            {/* Summary Stats */}
+            <div className="row g-4 mb-5">
+                <div className="col-md-4">
+                    <div className="card border-0 shadow-sm rounded-4 h-100 overflow-hidden">
+                        <div className="card-body p-4 position-relative">
+                            <div className="position-absolute top-0 end-0 p-3 opacity-10">
+                                <i className="bi bi-wallet2 display-1 text-success"></i>
+                            </div>
+                            <h6 className="text-secondary text-uppercase fw-bold small mb-3">Total Spent</h6>
+                            <h2 className="display-5 fw-bold mb-0 text-dark">₹{groupStats.totalSpent.toLocaleString()}</h2>
+                            <p className="text-muted small mt-2 mb-0">All expenses combined</p>
                         </div>
-                     </div>
+                    </div>
+                </div>
+                <div className="col-md-4">
+                    <div className={`card border-0 shadow-sm rounded-4 h-100 overflow-hidden ${groupStats.pendingCount > 0 ? 'bg-warning bg-opacity-10' : ''}`}>
+                        <div className="card-body p-4 position-relative">
+                            <div className="position-absolute top-0 end-0 p-3 opacity-10">
+                                <i className="bi bi-hourglass-split display-1 text-warning"></i>
+                            </div>
+                            <h6 className={`text-uppercase fw-bold small mb-3 ${groupStats.pendingCount > 0 ? 'text-warning' : 'text-secondary'}`}>Pending</h6>
+                            <h2 className={`display-5 fw-bold mb-0 ${groupStats.pendingCount > 0 ? 'text-warning' : 'text-dark'}`}>₹{groupStats.pendingAmount.toLocaleString()}</h2>
+                            <p className={`small mt-2 mb-0 ${groupStats.pendingCount > 0 ? 'text-warning text-opacity-75' : 'text-muted'}`}>{groupStats.pendingCount} pending expenses</p>
+                        </div>
+                    </div>
+                </div>
+                <div className="col-md-4">
+                    <div className="card border-0 shadow-sm rounded-4 h-100 overflow-hidden bg-success bg-opacity-10">
+                        <div className="card-body p-4 position-relative">
+                            <div className="position-absolute top-0 end-0 p-3 opacity-10">
+                                <i className="bi bi-check-circle display-1 text-success"></i>
+                            </div>
+                            <h6 className="text-success text-uppercase fw-bold small mb-3">Settled</h6>
+                            <h2 className="display-5 fw-bold mb-0 text-success">{groupStats.settledCount}</h2>
+                            <p className="text-success text-opacity-75 small mt-2 mb-0">{groupStats.settledCount} settled expenses</p>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -391,6 +460,7 @@ function GroupExpenses() {
                                         <th className="border-0 ps-4 py-3 text-secondary text-uppercase small fw-bold">Date</th>
                                         <th className="border-0 py-3 text-secondary text-uppercase small fw-bold">Expense Name</th>
                                         <th className="border-0 py-3 text-secondary text-uppercase small fw-bold">Payer</th>
+                                        <th className="border-0 py-3 text-secondary text-uppercase small fw-bold text-center">Status</th>
                                         <th className="border-0 py-3 text-secondary text-uppercase small fw-bold text-end pe-4">Amount</th>
                                     </tr>
                                 </thead>
@@ -418,6 +488,17 @@ function GroupExpenses() {
                                                     <span className="text-secondary small">{expense.payer?.username === user?.username ? "You" : expense.payer?.username}</span>
                                                 </div>
                                             </td>
+                                            <td className="py-3 text-center">
+                                                {isExpenseSettled(expense) ? (
+                                                    <span className="badge bg-success bg-opacity-10 text-success fw-bold px-2 py-1" style={{ fontSize: '0.7rem' }}>
+                                                        <i className="bi bi-check-circle-fill me-1"></i>Settled
+                                                    </span>
+                                                ) : (
+                                                    <span className="badge bg-warning bg-opacity-10 text-warning fw-bold px-2 py-1" style={{ fontSize: '0.7rem' }}>
+                                                        <i className="bi bi-hourglass-split me-1"></i>Pending
+                                                    </span>
+                                                )}
+                                            </td>
                                             <td className="text-end pe-4 py-3">
                                                 <span className="fw-bold text-dark">₹{expense.amount.toLocaleString()}</span>
                                             </td>
@@ -425,7 +506,7 @@ function GroupExpenses() {
                                     ))}
                                     {expenses.length === 0 && (
                                         <tr>
-                                            <td colSpan="4" className="text-center py-5 text-muted">
+                                            <td colSpan="5" className="text-center py-5 text-muted">
                                                 No expenses yet. Add your first expense!
                                             </td>
                                         </tr>

@@ -158,13 +158,13 @@ function Groups() {
 
     return (
         <div className="py-4">
-            <div className="d-flex justify-content-between align-items-center mb-5">
+            <div className="d-flex justify-content-between align-items-center mb-4">
                 <div>
-                    <h2 className="fw-bold mb-1 display-6" style={{ letterSpacing: "-1px" }}>Dashboard</h2>
+                    <h2 className="fw-bold mb-1 display-6" style={{ letterSpacing: "-1px" }}>Your Groups</h2>
                     <p className="text-secondary mb-0 fs-5">Manage your groups and expenses.</p>
                 </div>
                 <button
-                    className="btn btn-success px-4 py-2 fw-bold d-flex align-items-center shadow-sm"
+                    className="btn btn-success px-4 py-2 fw-bold d-flex align-items-center shadow-sm rounded-pill"
                     onClick={() => setShow(true)}
                 >
                     <i className="bi bi-plus-lg me-2"></i>
@@ -172,8 +172,50 @@ function Groups() {
                 </button>
             </div>
 
-            {/* Stats Summary could go here */}
-            
+            {/* Summary Stats */}
+            {groups.length > 0 && (
+                <div className="row g-4 mb-5">
+                    <div className="col-md-4">
+                        <div className="card border-0 shadow-sm rounded-4 h-100 overflow-hidden">
+                            <div className="card-body p-4 position-relative">
+                                <div className="position-absolute top-0 end-0 p-3 opacity-10">
+                                    <i className="bi bi-collection display-1 text-primary"></i>
+                                </div>
+                                <h6 className="text-secondary text-uppercase fw-bold small mb-3">Total Groups</h6>
+                                <h2 className="display-5 fw-bold mb-0 text-dark">{totalGroups}</h2>
+                                <p className="text-muted small mt-2 mb-0">Active groups</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="col-md-4">
+                        <div className="card border-0 shadow-sm rounded-4 h-100 overflow-hidden bg-primary bg-opacity-10">
+                            <div className="card-body p-4 position-relative">
+                                <div className="position-absolute top-0 end-0 p-3 opacity-10">
+                                    <i className="bi bi-people display-1 text-primary"></i>
+                                </div>
+                                <h6 className="text-primary text-uppercase fw-bold small mb-3">Total Members</h6>
+                                <h2 className="display-5 fw-bold mb-0 text-primary">{groups.reduce((sum, g) => sum + (g.members?.length || 0), 0)}</h2>
+                                <p className="text-primary text-opacity-75 small mt-2 mb-0">Across all groups</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="col-md-4">
+                        <div className="card border-0 shadow-sm rounded-4 h-100 overflow-hidden bg-success bg-opacity-10">
+                            <div className="card-body p-4 position-relative">
+                                <div className="position-absolute top-0 end-0 p-3 opacity-10">
+                                    <i className="bi bi-wallet2 display-1 text-success"></i>
+                                </div>
+                                <h6 className="text-success text-uppercase fw-bold small mb-3">Total Spending</h6>
+                                <h2 className="display-5 fw-bold mb-0 text-success">₹{groups.reduce((sum, g) => sum + (g.totalSpent || 0), 0).toLocaleString()}</h2>
+                                <p className="text-success text-opacity-75 small mt-2 mb-0">Combined group spending</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+
+
             {groups.length === 0 && !loading && (
                  <div className="text-center py-5">
                     <div className="bg-white rounded-circle d-inline-flex p-4 mb-4 shadow-sm flex-shrink-0" style={{ width: "100px", height: "100px", alignItems: "center", justifyContent: "center", aspectRatio: "1/1" }}>
