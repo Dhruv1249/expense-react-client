@@ -2,9 +2,11 @@ import axios from "axios";
 import { useState } from "react";
 import { serverEndpoint } from "../config/appConfig";
 import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 
 function CreateGroupModal({ show, onHide, onSuccess }) {
     const user = useSelector((state) => state.userDetails);
+    const navigate = useNavigate();
     const [formData, setFormData] = useState({
         name: "",
         description: "",
@@ -40,6 +42,11 @@ function CreateGroupModal({ show, onHide, onSuccess }) {
         if (errors[e.target.name]) {
             setErrors({ ...errors, [e.target.name]: null });
         }
+        
+        // Clear global error when user types
+        if (errors.message) {
+             setErrors({ ...errors, message: null, type: null });
+        }
     };
 
     const handleSubmit = async (e) => {
@@ -74,13 +81,25 @@ function CreateGroupModal({ show, onHide, onSuccess }) {
                 onHide();
             } catch (error) {
                 console.error(error);
-                setErrors({
-                    message: "Something went wrong. Please try again later.",
-                });
+                if (error.response && error.response.status === 403) {
+                     setErrors({
+                        message: error.response.data.message || "Insufficient credits.",
+                        type: "insufficient_credits"
+                    });
+                } else {
+                    setErrors({
+                        message: "Something went wrong. Please try again later.",
+                    });
+                }
             } finally {
                 setLoading(false);
             }
         }
+    };
+
+    const handleBuyCredits = () => {
+        onHide();
+        navigate("/manage-payments");
     };
 
     if (!show) return null;
@@ -116,8 +135,19 @@ function CreateGroupModal({ show, onHide, onSuccess }) {
                             </p>
 
                             {errors.message && (
-                                <div className="alert alert-danger py-2 small border-0 mb-3">
-                                    {errors.message}
+                                <div className={`alert ${errors.type === 'insufficient_credits' ? 'alert-warning' : 'alert-danger'} py-2 small border-0 mb-3`}>
+                                    <div className="d-flex justify-content-between align-items-center">
+                                        <span>{errors.message}</span>
+                                        {errors.type === 'insufficient_credits' && (
+                                            <button 
+                                                type="button" 
+                                                className="btn btn-sm btn-dark ms-2 fw-bold"
+                                                onClick={handleBuyCredits}
+                                            >
+                                                Buy Credits
+                                            </button>
+                                        )}
+                                    </div>
                                 </div>
                             )}
 
